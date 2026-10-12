@@ -6,7 +6,15 @@ from typing import Any
 
 SCHEMA: dict[str, Any] = {
     "bsonType": "object",
-    "required": ["_id", "organization_id", "version_id", "group_id", "short_name", "statement", "position"],
+    "required": [
+        "_id",
+        "organization_id",
+        "version_id",
+        "group_id",
+        "short_name",
+        "statement",
+        "position",
+    ],
     "additionalProperties": False,
     "properties": {
         "_id": {"bsonType": "objectId"},

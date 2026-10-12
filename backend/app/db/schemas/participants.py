@@ -1,4 +1,7 @@
-"""$jsonSchema for the participants collection (identity domain; no vote timestamp, only has_voted)."""
+"""$jsonSchema for the participants collection.
+
+Identity domain: no vote timestamp, only has_voted.
+"""
 
 from __future__ import annotations
 

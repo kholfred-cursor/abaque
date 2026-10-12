@@ -7,8 +7,16 @@ from typing import Any
 SCHEMA: dict[str, Any] = {
     "bsonType": "object",
     "required": [
-        "_id", "organization_id", "admin_id", "title", "participation_mode",
-        "slug", "vote_preset", "show_vote_example", "anonymity_threshold", "created_at",
+        "_id",
+        "organization_id",
+        "admin_id",
+        "title",
+        "participation_mode",
+        "slug",
+        "vote_preset",
+        "show_vote_example",
+        "anonymity_threshold",
+        "created_at",
     ],
     "additionalProperties": False,
     "properties": {

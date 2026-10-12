@@ -16,8 +16,16 @@ SCHEMA: dict[str, Any] = {
         "kind": {
             "bsonType": "string",
             "enum": [
-                "opened", "closed", "reopened", "archived", "reminder_sent", "purged",
-                "export_aggregated", "export_ballots", "export_texts", "export_pdf",
+                "opened",
+                "closed",
+                "reopened",
+                "archived",
+                "reminder_sent",
+                "purged",
+                "export_aggregated",
+                "export_ballots",
+                "export_texts",
+                "export_pdf",
             ],
         },
         "at": {"bsonType": "date"},

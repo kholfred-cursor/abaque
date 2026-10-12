@@ -9,7 +9,13 @@ from app.db.schemas._patterns import DAY
 SCHEMA: dict[str, Any] = {
     "bsonType": "object",
     "required": [
-        "_id", "organization_id", "version_id", "participant_id", "kind", "sent_on", "status",
+        "_id",
+        "organization_id",
+        "version_id",
+        "participant_id",
+        "kind",
+        "sent_on",
+        "status",
     ],
     "additionalProperties": False,
     "properties": {

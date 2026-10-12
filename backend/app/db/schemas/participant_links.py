@@ -1,4 +1,7 @@
-"""$jsonSchema for the participant_links collection (identity domain; consumed by deletion, no used_at)."""
+"""$jsonSchema for the participant_links collection.
+
+Identity domain: consumed by deletion, no used_at.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +12,12 @@ from app.db.schemas._patterns import SHA256_HEX
 SCHEMA: dict[str, Any] = {
     "bsonType": "object",
     "required": [
-        "_id", "organization_id", "version_id", "email_normalized", "token_hash", "expires_at",
+        "_id",
+        "organization_id",
+        "version_id",
+        "email_normalized",
+        "token_hash",
+        "expires_at",
     ],
     "additionalProperties": False,
     "properties": {

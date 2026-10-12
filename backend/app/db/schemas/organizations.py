@@ -9,7 +9,14 @@ from app.db.schemas._patterns import MONTH
 SCHEMA: dict[str, Any] = {
     "bsonType": "object",
     "required": [
-        "_id", "name", "slug", "plan_code", "status", "entitlements", "usage", "created_at",
+        "_id",
+        "name",
+        "slug",
+        "plan_code",
+        "status",
+        "entitlements",
+        "usage",
+        "created_at",
     ],
     "additionalProperties": False,
     "properties": {

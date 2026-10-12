@@ -1,4 +1,7 @@
-"""$jsonSchema for the ballots collection (vote domain; UUID v4 _id, day-only date, no identity field)."""
+"""$jsonSchema for the ballots collection.
+
+Vote domain: UUID v4 _id, day-only date, no identity field.
+"""
 
 from __future__ import annotations
 

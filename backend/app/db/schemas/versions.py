@@ -9,7 +9,13 @@ from app.db.schemas._patterns import KEY_ID
 SCHEMA: dict[str, Any] = {
     "bsonType": "object",
     "required": [
-        "_id", "organization_id", "evaluation_id", "label", "status", "is_visible", "ballot_count",
+        "_id",
+        "organization_id",
+        "evaluation_id",
+        "label",
+        "status",
+        "is_visible",
+        "ballot_count",
     ],
     "additionalProperties": False,
     "properties": {

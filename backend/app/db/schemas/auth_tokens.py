@@ -1,4 +1,7 @@
-"""$jsonSchema for the auth_tokens collection (admin email verification and password reset; TTL on expires_at)."""
+"""$jsonSchema for the auth_tokens collection.
+
+Admin email verification and password reset; TTL on expires_at.
+"""
 
 from __future__ import annotations
 

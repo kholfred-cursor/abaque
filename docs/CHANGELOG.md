@@ -17,6 +17,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 - **Instantané Git (2026-10-12, branche `lot-0-socle`)** — travail en cours, blocs 1, 2, 3a et 3b partie 1/2 : Docker, Compose, nginx, CI, Dependabot, `pyproject.toml`, `core/` (config, identity, security, logging, middleware), `db/client.py`, `db/schemas/` (21 schémas `$jsonSchema`), liste de mots de passe courants, `scripts/export_openapi.py`, `backend/uv.lock` (81 paquets). D026 ajoutée.
 - Manquent encore (bloc 3b partie 2/2 et suivants) : index, migrations, `app/main.py`, seed, repositories, API, tests, `frontend/package.json`. **La CI échoue tant qu'ils n'existent pas** : c'est attendu sur cette branche.
 
+- **Bloc 3b partie 2/2 (2026-10-12)** : `db/indexes.py` (34 index nommés), `db/migrations.py` (idempotent : validateur modifié seulement s'il diffère, conflit d'index → échec, rotation de clé, comptes de démo interdits en production), `db/seed.py`, `app/main.py` (`create_app`, `lifespan`, `/health`). Corrections de relecture : requête de rotation `$nin [null, clé]`, index `participant_links(version_id, email_normalized)`, `export_openapi.py` exécutable depuis `backend/`, nginx sans doublons d'en-têtes sur `/api` et `/health`, lint des schémas. Tests MongoDB du bloc à écrire.
+
 #### Reporté au lot 1
 - Activation du job CI `e2e` (premier parcours Playwright : vote anonyme sur viewport mobile).
 - Fichiers `docs/samples/items.csv` et `participants.csv`.

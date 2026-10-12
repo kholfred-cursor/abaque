@@ -76,4 +76,4 @@ async def run_in_transaction[T](
             write_concern=WriteConcern("majority"),
             read_preference=ReadPreference.PRIMARY,
         )
-        return result  # type: ignore[no-any-return]
+        return result
