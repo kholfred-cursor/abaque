@@ -77,3 +77,14 @@ def test_scanner_sees_the_code_and_detects_violations() -> None:
     assert "__ballot_reader__" in _imports_from_source(
         "from app.domain import ports\nx = ports.BallotReaderPort"
     )
+
+
+def test_frontend_never_imports_backend_code() -> None:
+    frontend = APP.parents[1] / "frontend" / "src"
+    offenders = [
+        path.relative_to(frontend).as_posix()
+        for path in frontend.rglob("*.ts*")
+        if "backend/" in path.read_text(encoding="utf-8")
+    ]
+    assert frontend.is_dir()
+    assert not offenders, f"frontend/src imports backend code: {offenders}"

@@ -125,3 +125,9 @@ Consommation atomique (`used_at` posé une seule fois, `expires_at` toujours vé
 - **Changement de mot de passe** : un mot de passe actuel incorrect renvoie **400 `WRONG_PASSWORD`** et non 401, pour que le front ne tente pas de rafraîchir la session ; les autres sessions sont révoquées, la session courante est conservée.
 - **Sessions** : seule une description courte de l'appareil est stockée (« Firefox · Windows »), jamais l'en-tête `User-Agent` brut. Révoquer la session d'un autre administrateur renvoie 404.
 - Le *slug* d'une organisation reçoit un suffixe aléatoire : il ne révèle jamais qu'un nom est déjà pris.
+
+## D032 — Organisation des tests et découverte des routes
+- **Arborescence par domaine** (`tests/core`, `db`, `entitlements`, `repositories`, `api`, `app`, `architecture`, `property`) au lieu des dossiers `unit/integration/concurrency` de `lot0-06` : un test se trouve à côté de ce qu'il vérifie. Le type reste porté par les marqueurs (`integration`, etc.). Les tests de concurrence sont dans `repositories/` et `api/`.
+- **Support HTTP partagé** dans `tests/api_support.py`, chargé pour tous les tests par `pytest_plugins` (fixture `api` : application démarrée, base migrée, propriétaire connecté, mailer qui enregistre les e-mails).
+- **Isolation automatique** (`tests/architecture/test_routes_tenancy.py`) : toute route dont l'arbre de dépendances contient `current_org` doit avoir une entrée dans `RESOURCE_FACTORIES`, sinon le test échoue. FastAPI 0.143 garde les routeurs inclus sous forme paresseuse (`_IncludedRouter`) : ils sont dépliés récursivement, et un test de garde échoue si la découverte ne trouve plus `/api/organization`.
+- **Hypothesis** : profils `ci` (500 exemples) et `dev` (50), choisis par `HYPOTHESIS_PROFILE`.

@@ -126,3 +126,35 @@ async def test_replay_within_grace_window_does_not_revoke(
     current = await repository.find_by_hash(_hash("b"))
     assert current is not None
     assert current.revoked_at is None
+
+
+@pytest.mark.integration
+async def test_twenty_concurrent_rotations_yield_exactly_one_new_session(
+    migrated_database: MigratedDatabase, mongo_client: Any
+) -> None:
+    repository = AdminSessionRepository(migrated_database.database, mongo_client)
+    expires = datetime.now(UTC) + timedelta(hours=1)
+    await repository.create(str(ObjectId()), _hash("a"), expires)
+
+    results = await asyncio.gather(
+        *[repository.rotate(_hash("a"), f"{i:064x}", expires) for i in range(20)],
+        return_exceptions=True,
+    )
+
+    assert sum(not isinstance(r, BaseException) for r in results) == 1
+    assert all(isinstance(r, ConcurrentRotation) for r in results if isinstance(r, BaseException))
+
+
+@pytest.mark.integration
+async def test_twenty_concurrent_token_consumptions_yield_one_success(
+    migrated_database: MigratedDatabase,
+) -> None:
+    repository = AuthTokenRepository(migrated_database.database)
+    admin_id = str(ObjectId())
+    await repository.create(
+        admin_id, "verify_email", _hash("d"), datetime.now(UTC) + timedelta(hours=1)
+    )
+    results = await asyncio.gather(
+        *[repository.consume(_hash("d"), "verify_email") for _ in range(20)]
+    )
+    assert results.count(admin_id) == 1

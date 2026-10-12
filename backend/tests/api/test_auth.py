@@ -16,7 +16,7 @@ from fastapi import Depends
 from app.api.deps import require_verified
 from app.core.logging import JsonFormatter
 from app.core.security import create_access_token, hash_token
-from tests.api.conftest import PASSWORD, Api
+from tests.api_support import PASSWORD, Api
 
 pytestmark = pytest.mark.integration
 

@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from app.core.security import hash_token
-from tests.api.conftest import PASSWORD, Api
+from tests.api_support import PASSWORD, Api
 
 pytestmark = pytest.mark.integration
 NEW_PASSWORD = "Another-Strong-Pass-77"

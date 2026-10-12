@@ -7,7 +7,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 ### Cadrage (2026-10-12)
 - Spécification `docs/PROMPT_MVP.md` figée (SaaS multi-organisations, anonymat, 6 lots).
 - Dossier `docs/architecture/` : spécifications détaillées du lot 0 (blocs 1 à 7) et des garanties (transaction de vote, anonymat, exports, tests du lot 2, production).
-- `docs/DECISIONS.md` : D001 à D031.
+- `docs/DECISIONS.md` : D001 à D032.
 - `docs/adr/0001-stack.md`.
 
 ### Lot 0 — Socle (en cours)
@@ -24,6 +24,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 - **Bloc 4b (2026-10-12)** : `AdminSessionRepository` (rotation atomique en transaction, détection de réutilisation), `AuthTokenRepository` (un jeton actif par usage, consommation atomique), tests de concurrence, tests d'architecture par AST. Corrections de relecture : fenêtre de tolérance de 10 s (`ConcurrentRotation`) — sans elle, deux onglets qui se rafraîchissent ensemble déconnectaient l'utilisateur ; tests d'architecture rendus non vacants (contrôle du scanner, accès `ports.BallotReaderPort`). 131 tests, couverture 93 %. D029.
 - **Bloc 5a (2026-10-12)**, réalisé hors de l'agent : format d'erreur unique, dépendances (`current_admin`, `require_verified`, `require_role`, `current_org`, CSRF à double soumission), 3 cookies conformes à la spécification, limite de débit en mémoire, `Mailer` (console en développement, refusé en production), routes `login`, `refresh` (409 en cas de course entre onglets, 401 et révocation globale en cas de rejeu), `logout`, `me`, `organization`. `MongoStore` (D030), D020 tranchée (403). 24 tests HTTP, dont des tests de non-régression vérifiés par mutation (CSRF désactivé, cookie affaibli). 155 tests, couverture 93 %. Types OpenAPI du front régénérés.
 - **Bloc 5b (2026-10-12)**, réalisé hors de l'agent : inscription (organisation en essai et propriétaire non vérifié, réponse neutre), vérification de l'e-mail et renvoi, mot de passe oublié et réinitialisation (révocation de toutes les sessions), changement de mot de passe (révocation des autres sessions), liste et révocation des sessions avec description courte de l'appareil. D031. 18 tests HTTP, dont deux vérifiés par mutation. 173 tests, couverture 93 %.
+- **Bloc 6 (2026-10-12)**, réalisé hors de l'agent : test d'isolation appliqué automatiquement à toute route d'organisation (une route sans test fait échouer la CI) ; `run_in_transaction` sous pannes injectées (`TransientTransactionError` → callback rejoué, un seul document ; `UnknownTransactionCommitResult` → callback **une seule fois** ; erreur métier → rien d'écrit) ; validateurs en profondeur (sous-objets, éléments de tableaux, clés de mois) ; seuil d'anonymat < 3 rejeté ; 20 rotations et 20 consommations concurrentes → un seul succès ; le front n'importe jamais le backend ; profils Hypothesis. D032. 192 tests, couverture 93 %.
 
 #### Reporté au lot 1
 - Activation du job CI `e2e` (premier parcours Playwright : vote anonyme sur viewport mobile).

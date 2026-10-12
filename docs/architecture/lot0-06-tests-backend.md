@@ -22,6 +22,8 @@
 - `tests/factories.py` : documents **valides selon les schémas** pour **toutes** les collections, y compris le domaine vote.
 
 ## Organisation
+> **Réalisé (D032)** : arborescence par domaine (`core`, `db`, `entitlements`, `repositories`, `api`, `app`, `architecture`, `property`) plutôt que par type ; support HTTP partagé dans `tests/api_support.py`.
+
 ```
 tests/
 ├── conftest.py   factories.py

@@ -10,12 +10,19 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
+from hypothesis import settings as hypothesis_settings
 from pymongo import AsyncMongoClient
 from pymongo.asynchronous.database import AsyncDatabase
 
 from app.core.config import Settings
 from app.db.client import get_database
 from app.db.migrations import apply_migrations
+
+pytest_plugins = ["tests.api_support"]
+
+hypothesis_settings.register_profile("ci", max_examples=500, deadline=None)
+hypothesis_settings.register_profile("dev", max_examples=50)
+hypothesis_settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", "dev"))
 
 
 @dataclass(frozen=True)
