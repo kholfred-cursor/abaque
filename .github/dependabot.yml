@@ -1,0 +1,40 @@
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/backend"
+    schedule: { interval: "weekly" }
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "backend"]
+    groups:
+      backend-minor:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule: { interval: "weekly" }
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "frontend"]
+    groups:
+      frontend-minor:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "docker"
+    directories: ["/backend", "/frontend"]
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+    ignore:
+      - dependency-name: "mongo"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "ci"]
+    groups:
+      actions-minor:
+        update-types: ["minor", "patch"]

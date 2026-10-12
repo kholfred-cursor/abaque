@@ -1,0 +1,17 @@
+name: Test secrets
+description: Génère trois secrets de test distincts, masqués dans les journaux.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+        JWT="$(openssl rand -hex 32)"
+        HMAC="$(openssl rand -hex 32)"
+        SALT="$(openssl rand -hex 16)"
+        for v in "$JWT" "$HMAC" "$SALT"; do echo "::add-mask::$v"; done
+        {
+          echo "JWT_SECRET=$JWT"
+          echo "CREDENTIAL_HMAC_KEY=$HMAC"
+          echo "IP_HASH_SALT=$SALT"
+        } >> "$GITHUB_ENV"

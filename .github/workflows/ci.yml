@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/**'
+            frontend:
+              - 'frontend/**'
+              - '.github/**'
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.13.0" # même version que le Dockerfile (D012)
+          python-version: "3.13"
+
+      - uses: ./.github/actions/test-secrets
+
+      - name: Start MongoDB replica set (test commands enabled)
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7.0 \
+            --replSet rs0 --bind_ip_all --setParameter enableTestCommands=1
+          ok=0
+          for i in $(seq 1 30); do
+            if docker exec mongo mongosh --quiet --eval "db.adminCommand('ping').ok" 2>/dev/null | grep -q 1; then ok=1; break; fi
+            sleep 1
+          done
+          if [ "$ok" != 1 ]; then docker logs mongo --tail 50; exit 1; fi
+          docker exec mongo mongosh --quiet --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})'
+          ok=0
+          for i in $(seq 1 30); do
+            if docker exec mongo mongosh --quiet --eval "db.hello().isWritablePrimary" 2>/dev/null | grep -q true; then ok=1; break; fi
+            sleep 1
+          done
+          if [ "$ok" != 1 ]; then docker logs mongo --tail 50; exit 1; fi
+
+      - name: Install
+        working-directory: backend
+        run: uv sync --frozen
+
+      - name: Lint
+        working-directory: backend
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Type check
+        working-directory: backend
+        run: uv run mypy --strict app
+
+      - name: Test
+        working-directory: backend
+        env:
+          ENVIRONMENT: development
+          MONGODB_URI: mongodb://localhost:27017/?replicaSet=rs0&directConnection=true
+          DATABASE_NAME: abaque_test
+          SEED_DEMO: "false"
+        run: uv run pytest --cov-fail-under=85
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - working-directory: frontend
+        run: npm ci
+      - working-directory: frontend
+        run: npm run lint
+      - working-directory: frontend
+        run: npm run typecheck
+      - working-directory: frontend
+        run: npm test -- --run
+      - working-directory: frontend
+        run: npm run build
+
+  contract:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.13.0"
+          python-version: "3.13"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: ./.github/actions/test-secrets
+      - working-directory: backend
+        run: uv sync --frozen
+      - working-directory: frontend
+        run: npm ci
+      - name: Export OpenAPI (sans base de données)
+        working-directory: backend
+        env:
+          ENVIRONMENT: development
+        run: uv run python scripts/export_openapi.py > ../openapi.json
+      - name: Generate types
+        working-directory: frontend
+        run: npm run gen:api
+      - name: Check types are up to date
+        run: |
+          if ! git diff --exit-code frontend/src/shared/api/schema.d.ts; then
+            echo "Les types OpenAPI ne sont pas à jour : lancer 'npm run gen:api' et commiter."
+            exit 1
+          fi
+
+  # Activé au lot 1 : premier parcours Playwright (vote anonyme sur viewport mobile)
+  e2e:
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Activé au lot 1"
