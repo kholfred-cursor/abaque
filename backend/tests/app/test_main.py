@@ -14,6 +14,13 @@ from app.core.config import Settings
 from app.main import create_app
 
 
+class _NullMailer:
+    """Stands in for a real provider: production refuses the ConsoleMailer."""
+
+    async def send(self, to: str, template: Any, context: dict[str, str]) -> None:
+        return None
+
+
 def test_create_app_opens_no_connection() -> None:
     """Building the app and its OpenAPI schema needs no database."""
     schema = create_app().openapi()
@@ -38,7 +45,7 @@ async def test_lifespan_and_health(
     monkeypatch.setattr("app.main.get_settings", lambda: settings)
     config.get_settings.cache_clear()
 
-    app = create_app()
+    app = create_app(mailer=_NullMailer()) if environment == "production" else create_app()
     try:
         async with app.router.lifespan_context(app):
             transport = httpx.ASGITransport(app=app)
@@ -52,3 +59,17 @@ async def test_lifespan_and_health(
         assert response.headers["x-content-type-options"] == "nosniff"
     finally:
         await mongo_client.drop_database(settings.DATABASE_NAME)
+
+
+@pytest.mark.integration
+async def test_production_refuses_console_mailer(
+    monkeypatch: pytest.MonkeyPatch, make_settings: Callable[..., Settings]
+) -> None:
+    settings = make_settings().model_copy(
+        update={"ENVIRONMENT": "production", "COOKIE_SECURE": True}
+    )
+    monkeypatch.setattr("app.main.get_settings", lambda: settings)
+    app = create_app()
+    with pytest.raises(RuntimeError, match="ConsoleMailer"):
+        async with app.router.lifespan_context(app):
+            pass

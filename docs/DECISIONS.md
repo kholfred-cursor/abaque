@@ -74,7 +74,7 @@ Fenêtre glissante en mémoire, derrière l'interface `RateLimiter`. Implique D0
 Vrai par défaut en développement, **faux par défaut en production** jusqu'au lot 5. Les organisations créées par inscription reçoivent `plan_code="trial"`.
 
 ## D020 — Code HTTP du dépassement d'offre
-*À choisir par l'agent (402 ou 403) et à consigner ici.*
+**403** avec le code `LIMIT_REACHED` et le message « Limite de votre offre atteinte. » (`FEATURE_NOT_ALLOWED` pour une fonctionnalité absente de l'offre). 402 est réservé par HTTP et mal géré par les clients.
 
 ## D021 — Échelle et modes
 5 couleurs (sans blanc ni noir) ; 3 modes de participation dès le MVP ; seuil k de 3, modifiable à la hausse uniquement.
@@ -112,3 +112,8 @@ Consommation atomique (`used_at` posé une seule fois, `expires_at` toujours vé
   - `create_animator` compte puis insère : deux créations simultanées peuvent dépasser `max_animators` de 1 ;
   - `AuthTokenRepository.create` supprime puis insère : deux demandes simultanées peuvent laisser deux jetons actifs pour le même usage (chacun reste à usage unique et expire).
   À reprendre si la contrainte devient stricte (compteur sur le document d'organisation dans la transaction).
+
+## D030 — `MongoStore`, accès unique aux repositories pour l'API et les services
+- **Décision** : l'API et les services reçoivent un `MongoStore` (créé dans le `lifespan`) et lui demandent leurs repositories (`store.admin_auth()`, `store.organizations(tenant)`…). Ils n'importent jamais `pymongo` ni `bson` ; le test d'architecture le vérifie (il a détecté la première version du bloc 5a qui le faisait).
+- **Limite de débit** : fenêtre glissante simple (10 essais par IP et 5 par compte en 15 min), **sans délai progressif** au lot 0. Le compteur du compte est remis à zéro après une connexion réussie.
+- **Accepté** : après une déconnexion, l'access token déjà émis reste valide jusqu'à 15 min (pas de liste de révocation, cf. `lot0-05`).

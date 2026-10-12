@@ -1,0 +1,54 @@
+# Avancement d'Abaque
+
+Mis à jour à chaque bloc intégré. Branche de travail : `lot-0-socle` ; `main` ne reçoit que du code testé.
+
+## Lot 0 — Socle
+
+| Bloc | Contenu | État |
+|---|---|---|
+| 1 | Racine, documentation, licence, ADR, décisions, journal des modifications | ✅ |
+| 2 | Docker Compose (MongoDB en réplica set), Dockerfiles, nginx, CI, Dependabot | ✅ |
+| 3 | Configuration, sécurité, journaux masqués, client MongoDB, 21 schémas, index, migrations, seed, `/health` | ✅ |
+| 3c | Squelette du front (Vite, lint, types générés depuis l'API, 3 routes) | ✅ |
+| 4a | Droits par offre, domaine, repositories organisations et animateurs | ✅ |
+| 4b | Sessions, jetons à usage unique, tests de concurrence et d'architecture | ✅ |
+| 5a | Connexion, renouvellement de session, déconnexion, profil, organisation, CSRF, limite de débit | ✅ |
+| 5b | Inscription, vérification de l'e-mail, mot de passe oublié / réinitialisation / changement, gestion des sessions | à faire |
+| 6 | Tests d'isolation appliqués automatiquement à toutes les routes | à faire |
+| 7 | Écrans React (connexion, inscription, mot de passe, tableau de bord, tokens de design, `/v/:slug`) | à faire |
+
+**Fin du lot 0** : `git clone`, `.env`, `docker compose up` ; l'administrateur de démonstration se connecte ; la CI est verte.
+
+## Lots suivants
+
+| Lot | Contenu | État |
+|---|---|---|
+| 1 | Boucle de vote anonyme (évaluations, versions, items, lien et QR code, parcours de vote mobile) | à faire |
+| 2 | Moteurs, service de vote pour les 3 modes, garanties d'anonymat | à faire |
+| 3 | Accès nominatifs et collecte avancée (liens magiques, segmentation, questions ouvertes, e-mails réels) | à faire |
+| 4 | Restitution (matrices, histogrammes, exports CSV et PDF) | à faire |
+| 5 | SaaS, démo publique, essai, super-administrateur, documents légaux, déploiement | à faire |
+
+## Ce que l'application sait faire aujourd'hui (API, sans écran)
+
+- Démarrer en vérifiant sa configuration : secrets présents, différents et assez longs ; règles propres à la production (cookies sécurisés, pas de comptes de démonstration, pas d'envoi d'e-mails factice).
+- Créer et faire évoluer la base de données à chaque démarrage, sans rien supprimer, avec des validateurs qui refusent tout champ non prévu — en particulier tout champ identifiant dans les données de vote.
+- Créer une organisation et son propriétaire en une seule opération indivisible ; appliquer les droits de l'offre (nombre d'évaluations, de bulletins, d'animateurs, fonctionnalités) avec des surcharges propres à chaque organisation.
+- Garantir qu'un animateur ne voit jamais les données d'une autre organisation (réponse 404, jamais 403).
+- Connecter un animateur avec 3 cookies (session courte, renouvellement, protection CSRF) ; refuser de la même façon un e-mail inconnu et un mauvais mot de passe ; bloquer les tentatives répétées.
+- Renouveler la session sans déconnecter l'utilisateur qui a deux onglets ouverts ; détecter le rejeu d'un jeton volé et fermer alors toutes ses sessions.
+- Ne jamais écrire de mot de passe, de jeton ni d'adresse e-mail en clair dans les journaux.
+
+## Décisions récentes
+
+- **D020** — dépassement d'offre : réponse 403 `LIMIT_REACHED`.
+- **D028** — les droits stockés sont des surcharges de l'offre, recalculés à chaque lecture : changer d'offre s'applique immédiatement.
+- **D029** — fenêtre de 10 s pour le renouvellement de session simultané de deux onglets ; au-delà, rejeu = révocation de toutes les sessions.
+- **D030** — l'API et les services passent par `MongoStore` et n'importent jamais `pymongo`.
+
+## Risques acceptés (lot 0)
+
+- Deux créations simultanées d'animateurs peuvent dépasser le quota de 1.
+- Deux demandes simultanées peuvent laisser deux jetons de réinitialisation actifs (chacun à usage unique, avec expiration).
+- Après une déconnexion, un access token déjà émis reste valide au plus 15 minutes.
+- Limite de débit en mémoire : valable tant que l'API tourne en un seul processus (D013).

@@ -11,6 +11,8 @@ from fastapi import FastAPI, Request
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from app.api.errors import install_error_handlers
+from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.logging import setup_logging
 from app.core.middleware import AccessLogMiddleware
@@ -18,6 +20,9 @@ from app.core.security import load_common_passwords
 from app.db.client import create_client, get_database
 from app.db.migrations import MigrationSummary, apply_migrations
 from app.db.seed import seed_demo
+from app.repositories.mongo.store import MongoStore
+from app.services.mailer import ConsoleMailer, Mailer
+from app.services.rate_limit import InMemoryRateLimiter, RateLimiter
 
 
 class SecurityHeadersMiddleware:
@@ -53,6 +58,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     setup_logging()
     load_common_passwords()
     settings = get_settings()
+    if settings.ENVIRONMENT == "production" and isinstance(app.state.mailer, ConsoleMailer):
+        msg = "ConsoleMailer is development-only: configure a real mailer in production"
+        raise RuntimeError(msg)
     client = create_client(settings.MONGODB_URI)
     scheduler: AsyncIOScheduler | None = None
 
@@ -60,6 +68,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.settings = settings
         app.state.mongo_client = client
         app.state.database = get_database(client, settings.DATABASE_NAME)
+        app.state.store = MongoStore(client, app.state.database)
         app.state.migration_summary = await apply_migrations(client, settings)
         app.state.demo_seeded = await seed_demo(app.state.database, settings)
         scheduler = AsyncIOScheduler()
@@ -86,11 +95,17 @@ def _health_response(request: Request) -> dict[str, Any]:
     return response
 
 
-def create_app() -> FastAPI:
+def create_app(*, mailer: Mailer | None = None, rate_limiter: RateLimiter | None = None) -> FastAPI:
     """Build the ASGI application without opening a database connection."""
     application = FastAPI(title="Abaque API", lifespan=lifespan)
+    application.state.mailer = mailer if mailer is not None else ConsoleMailer()
+    application.state.rate_limiter = (
+        rate_limiter if rate_limiter is not None else InMemoryRateLimiter()
+    )
     application.add_middleware(SecurityHeadersMiddleware)
     application.add_middleware(AccessLogMiddleware)
+    install_error_handlers(application)
+    application.include_router(api_router)
 
     @application.get("/health")
     async def health(request: Request) -> dict[str, Any]:

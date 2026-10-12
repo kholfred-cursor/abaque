@@ -83,6 +83,19 @@ class AdminAuthRepository:
         except Exception as exc:
             raise NotFound("Resource not found") from exc
 
+    async def get_by_id(
+        self, admin_id: str, session: AsyncClientSession | None = None
+    ) -> Admin | None:
+        """Load an account by id for authentication (JWT subject, session owner)."""
+        try:
+            object_id = ObjectId(admin_id)
+        except Exception:
+            return None
+        document = await self.database["admins"].find_one(
+            {"_id": object_id}, **self._session_options(session)
+        )
+        return None if document is None else admin_from_document(dict(document))
+
     async def find_by_email(
         self, email: str, session: AsyncClientSession | None = None
     ) -> Admin | None:
