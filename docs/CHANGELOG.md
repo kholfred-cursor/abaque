@@ -7,7 +7,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 ### Cadrage (2026-10-12)
 - Spécification `docs/PROMPT_MVP.md` figée (SaaS multi-organisations, anonymat, 6 lots).
 - Dossier `docs/architecture/` : spécifications détaillées du lot 0 (blocs 1 à 7) et des garanties (transaction de vote, anonymat, exports, tests du lot 2, production).
-- `docs/DECISIONS.md` : D001 à D027.
+- `docs/DECISIONS.md` : D001 à D028.
 - `docs/adr/0001-stack.md`.
 
 ### Lot 0 — Socle (en cours)
@@ -20,6 +20,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 - **Bloc 3b partie 2/2 (2026-10-12)** : `db/indexes.py` (34 index nommés), `db/migrations.py` (idempotent : validateur modifié seulement s'il diffère, conflit d'index → échec, rotation de clé, comptes de démo interdits en production), `db/seed.py`, `app/main.py` (`create_app`, `lifespan`, `/health`). Corrections de relecture : requête de rotation `$nin [null, clé]`, index `participant_links(version_id, email_normalized)`, `export_openapi.py` exécutable depuis `backend/`, nginx sans doublons d'en-têtes sur `/api` et `/health`, lint des schémas. Tests MongoDB du bloc à écrire.
 - **Tests du bloc 3 (2026-10-12)** : 106 tests, tous verts sur MongoDB 7.0 en réplica set (`enableTestCommands`), couverture 96 %. 66 écrits par l'agent (Settings, migrations, 21 validateurs, domaine vote, seed) ; fabrique de documents corrigée (motifs UUID, jour, mois, SHA-256) et tests négatifs renforcés (le document de base est d'abord prouvé valide). Ajoutés à la relecture : identité, sécurité, journaux, middleware, `create_app` et `/health`. CI : `MONGODB_TEST_URI`.
 - **Bloc 3c — squelette front (2026-10-12)** : `package.json` et `package-lock.json`, Vite 8, TypeScript strict, ESLint (TypeScript, react-hooks, jsx-a11y, interdiction de `dangerouslySetInnerHTML` et du stockage local), Prettier, Vitest, `gen:api` et `schema.d.ts` commité, client `openapi-fetch`, routes `/`, `/v/:slug` et 404 avec 3 tests. Les vrais écrans restent au bloc 7. D027.
+- **Bloc 4a (2026-10-12)** : `entitlements` (plans, résolution, contrôles), `domain` (modèles, erreurs, `TenantContext`, ports de tous les repositories y compris lots 1 à 3), `repositories/mongo` (`TenantScopedRepository`, organisations, admins, authentification). Corrections de relecture : droits stockés en surcharges et recalculés à la lecture, `OrganizationProvisioningRepository` pour l'inscription au lieu d'un faux contexte, `AlreadyConsumed`, interfaces figées des lots 1 à 3, tests ajoutés (atomicité par `failCommand`, quota d'animateurs, changement d'offre, surcharges invalides, isolation des listes et de l'usage). 121 tests, couverture 93 %. D028.
 
 #### Reporté au lot 1
 - Activation du job CI `e2e` (premier parcours Playwright : vote anonyme sur viewport mobile).

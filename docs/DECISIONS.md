@@ -100,3 +100,7 @@ Consommation atomique (`used_at` posé une seule fois, `expires_at` toujours vé
 ## D027 — Versions de l'outillage front (bloc 3c)
 - **Décision** : React 19.3, React Router **7** (mode bibliothèque, comme prévu), Vite 8, Vitest 5, TypeScript **5.9** et ESLint **9**, versions exactes épinglées dans `package.json` et `package-lock.json`.
 - **Motif** : `typescript-eslint` n'accepte pas TypeScript 7 (borne `< 6.1`) et `openapi-typescript` exige TypeScript 5 ; `eslint-plugin-jsx-a11y` ne déclare pas encore ESLint 10. ESLint 9 est marqué obsolète par npm : à remonter dès que `jsx-a11y` supporte ESLint 10 (Dependabot le signalera).
+
+## D028 — Droits stockés en surcharges, création d'organisation hors périmètre d'organisation
+- **Décision 1** : le champ `organizations.entitlements` ne contient que les **surcharges** propres à l'organisation. Les droits effectifs sont recalculés à chaque lecture par `resolve(plan_code, surcharges)`. Changer `plan_code` (ou `PLAN_DEFAULTS`) s'applique donc immédiatement, sans réécrire les documents : c'est ce qui permet de « changer l'offre en un clic » (lot 5).
+- **Décision 2** : `create_with_owner` est porté par `OrganizationProvisioningRepository`, repository **hors organisation** explicitement nommé (comme `AdminAuthRepository`), car à l'inscription aucune organisation n'existe encore. `OrganizationRepository` reste strictement limité à l'organisation du `TenantContext`.
