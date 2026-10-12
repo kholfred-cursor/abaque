@@ -96,3 +96,7 @@ Consommation atomique (`used_at` posé une seule fois, `expires_at` toujours vé
 ## D026 — Granularité des événements d'export
 - **Décision** : `version_events` enregistre un événement par export (type `export`, sous-type `aggregated`, `ballots` ou `texts`), avec l'administrateur, l'horodatage et le seuil k appliqué. Jamais de paramètres permettant de reconstituer un sous-groupe (pas de filtre de segment en clair).
 - **Motif** : traçabilité des sorties de données sans créer de lien entre identité et vote.
+
+## D027 — Versions de l'outillage front (bloc 3c)
+- **Décision** : React 19.3, React Router **7** (mode bibliothèque, comme prévu), Vite 8, Vitest 5, TypeScript **5.9** et ESLint **9**, versions exactes épinglées dans `package.json` et `package-lock.json`.
+- **Motif** : `typescript-eslint` n'accepte pas TypeScript 7 (borne `< 6.1`) et `openapi-typescript` exige TypeScript 5 ; `eslint-plugin-jsx-a11y` ne déclare pas encore ESLint 10. ESLint 9 est marqué obsolète par npm : à remonter dès que `jsx-a11y` supporte ESLint 10 (Dependabot le signalera).

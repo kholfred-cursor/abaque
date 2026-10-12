@@ -78,6 +78,7 @@ jobs:
         env:
           ENVIRONMENT: development
           MONGODB_URI: mongodb://localhost:27017/?replicaSet=rs0&directConnection=true
+          MONGODB_TEST_URI: mongodb://localhost:27017/?replicaSet=rs0&directConnection=true
           DATABASE_NAME: abaque_test
           SEED_DEMO: "false"
         run: uv run pytest --cov-fail-under=85
