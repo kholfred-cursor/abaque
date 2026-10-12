@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Protocol
 
 from app.domain.models import Admin, AdminCreate, Organization, OrganizationCreate, UsageKey
+from app.domain.sessions import AdminSession
 from app.entitlements.models import Entitlements
 
 
@@ -67,32 +68,45 @@ class AdminSessionRepositoryPort(Protocol):
     """Lot 0, block 4b: refresh-token sessions (lookup by token hash, outside tenant scope)."""
 
     async def create(
-        self, admin_id: str, token_hash: str, session: object | None = None
-    ) -> str: ...
+        self, admin_id: str, token_hash: str, expires_at: object, session: object | None = None
+    ) -> AdminSession: ...
+
+    async def find_by_hash(
+        self, token_hash: str, session: object | None = None
+    ) -> AdminSession | None: ...
 
     async def rotate(
-        self, old_token_hash: str, new_token_hash: str, session: object | None = None
-    ) -> str | None: ...
+        self,
+        old_token_hash: str,
+        new_token_hash: str,
+        expires_at: object,
+        session: object | None = None,
+    ) -> AdminSession: ...
 
     async def revoke(self, token_hash: str, session: object | None = None) -> None: ...
 
     async def revoke_all_for_admin(self, admin_id: str, session: object | None = None) -> int: ...
-
-    async def find_by_hash(self, token_hash: str, session: object | None = None) -> Any | None: ...
-
-    async def mark_consumed(self, token_hash: str, session: object | None = None) -> bool: ...
 
 
 class AuthTokenRepositoryPort(Protocol):
     """Lot 0, block 4b: single-use admin tokens (email verification, password reset)."""
 
     async def create(
-        self, admin_id: str, purpose: str, token_hash: str, session: object | None = None
+        self,
+        admin_id: str,
+        purpose: str,
+        token_hash: str,
+        expires_at: object,
+        session: object | None = None,
     ) -> None: ...
 
     async def consume(
         self, token_hash: str, purpose: str, session: object | None = None
     ) -> str | None: ...
+
+    async def delete_for_admin(
+        self, admin_id: str, purpose: str, session: object | None = None
+    ) -> None: ...
 
 
 class EvaluationRepositoryPort(Protocol):

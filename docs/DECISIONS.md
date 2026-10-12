@@ -104,3 +104,11 @@ Consommation atomique (`used_at` posé une seule fois, `expires_at` toujours vé
 ## D028 — Droits stockés en surcharges, création d'organisation hors périmètre d'organisation
 - **Décision 1** : le champ `organizations.entitlements` ne contient que les **surcharges** propres à l'organisation. Les droits effectifs sont recalculés à chaque lecture par `resolve(plan_code, surcharges)`. Changer `plan_code` (ou `PLAN_DEFAULTS`) s'applique donc immédiatement, sans réécrire les documents : c'est ce qui permet de « changer l'offre en un clic » (lot 5).
 - **Décision 2** : `create_with_owner` est porté par `OrganizationProvisioningRepository`, repository **hors organisation** explicitement nommé (comme `AdminAuthRepository`), car à l'inscription aucune organisation n'existe encore. `OrganizationRepository` reste strictement limité à l'organisation du `TenantContext`.
+
+## D029 — Renouvellement de session : fenêtre de tolérance et risques acceptés
+- **Décision** : un jeton de rafraîchissement présenté de nouveau **moins de 10 secondes** après sa rotation lève `ConcurrentRotation` sans rien révoquer (cas bénin de deux onglets qui se rafraîchissent en même temps : le client réessaie avec le cookie posé par la requête gagnante ; l'API répondra 409 au bloc 5). Au-delà de 10 secondes, c'est un rejeu (vol probable) : `SessionReuseDetected`, et **toutes** les sessions de l'administrateur sont révoquées.
+- **Motif** : sans cette fenêtre, une simple course entre deux onglets déconnectait entièrement l'utilisateur, y compris l'onglet gagnant (constaté et testé).
+- **Risques acceptés (lot 0)** :
+  - `create_animator` compte puis insère : deux créations simultanées peuvent dépasser `max_animators` de 1 ;
+  - `AuthTokenRepository.create` supprime puis insère : deux demandes simultanées peuvent laisser deux jetons actifs pour le même usage (chacun reste à usage unique et expire).
+  À reprendre si la contrainte devient stricte (compteur sur le document d'organisation dans la transaction).
