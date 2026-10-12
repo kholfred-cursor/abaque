@@ -15,13 +15,25 @@ from app.domain.models import Admin, AdminRole, TenantContext
 from app.repositories.mongo.admins import AdminRepository
 from app.repositories.mongo.organizations import OrganizationRepository
 from app.repositories.mongo.store import MongoStore
+from app.services.account import AccountService
 from app.services.auth import AuthService
 from app.services.mailer import Mailer
 from app.services.rate_limit import RateLimiter
 
 UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 # Protected by SameSite + rate limiting instead (no session exists yet).
-CSRF_EXEMPT_PATHS = frozenset({"/api/auth/login", "/api/auth/signup", "/api/auth/password/forgot"})
+# verify-email and password/reset carry a secret single-use token in the body, which a
+# cross-site attacker cannot know; the CSRF cookie may not even exist yet (link opened
+# from an email, no session). D031.
+CSRF_EXEMPT_PATHS = frozenset(
+    {
+        "/api/auth/login",
+        "/api/auth/signup",
+        "/api/auth/password/forgot",
+        "/api/auth/verify-email",
+        "/api/auth/password/reset",
+    }
+)
 
 
 def get_settings_dep(request: Request) -> Settings:
@@ -54,6 +66,15 @@ def get_auth_service(
     rate_limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> AuthService:
     return AuthService(store, settings, rate_limiter)
+
+
+def get_account_service(
+    store: StoreDep,
+    settings: SettingsDep,
+    rate_limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
+    mailer: Annotated[Mailer, Depends(get_mailer)],
+) -> AccountService:
+    return AccountService(store, settings, rate_limiter, mailer)
 
 
 async def csrf_protect(request: Request) -> None:

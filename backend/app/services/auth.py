@@ -31,6 +31,42 @@ LOGIN_LIMIT_PER_IP = 10
 LOGIN_LIMIT_PER_ACCOUNT = 5
 
 
+def describe_device(user_agent: str | None) -> str | None:
+    """Short, non-identifying description such as "Firefox · Windows" (never the raw UA)."""
+    if not user_agent:
+        return None
+    browser = next(
+        (
+            name
+            for marker, name in (
+                ("Edg/", "Edge"),
+                ("OPR/", "Opera"),
+                ("Firefox/", "Firefox"),
+                ("Chrome/", "Chrome"),
+                ("Safari/", "Safari"),
+            )
+            if marker in user_agent
+        ),
+        "Navigateur",
+    )
+    system = next(
+        (
+            name
+            for marker, name in (
+                ("Windows", "Windows"),
+                ("Android", "Android"),
+                ("iPhone", "iOS"),
+                ("iPad", "iPadOS"),
+                ("Mac OS", "macOS"),
+                ("Linux", "Linux"),
+            )
+            if marker in user_agent
+        ),
+        "système inconnu",
+    )
+    return f"{browser} · {system}"
+
+
 class InvalidCredentials(Exception):  # noqa: N818
     """Unknown email or wrong password: deliberately indistinguishable."""
 
@@ -72,7 +108,9 @@ class AuthService:
     def _refresh_expiry(self) -> datetime:
         return datetime.now(UTC) + timedelta(days=self.settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
-    async def login(self, email: str, password: str, client_ip: str) -> IssuedTokens:
+    async def login(
+        self, email: str, password: str, client_ip: str, user_agent: str | None = None
+    ) -> IssuedTokens:
         try:
             normalized = normalize_email(email)
         except InvalidEmailError:
@@ -98,7 +136,12 @@ class AuthService:
             admin = await self.admins.set_password_hash(admin.id, hash_password(password))
 
         refresh_token = generate_opaque_token()
-        await self.sessions.create(admin.id, hash_token(refresh_token), self._refresh_expiry())
+        await self.sessions.create(
+            admin.id,
+            hash_token(refresh_token),
+            self._refresh_expiry(),
+            user_agent_hint=describe_device(user_agent),
+        )
         return await self._issue(admin, refresh_token)
 
     async def refresh(self, refresh_token: str | None) -> IssuedTokens:

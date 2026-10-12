@@ -23,6 +23,20 @@ PASSWORD = "Correct-Horse-Battery-42!"
 BASE_URL = "http://abaque.test"
 
 
+class RecordingMailer:
+    """Captures outgoing emails so tests can follow the links they contain."""
+
+    def __init__(self) -> None:
+        self.sent: list[tuple[str, str, dict[str, str]]] = []
+
+    async def send(self, to: str, template: str, context: dict[str, str]) -> None:
+        self.sent.append((to, template, context))
+
+    def last_token(self, template: str) -> str:
+        link = next(c["link"] for _, t, c in reversed(self.sent) if t == template)
+        return link.split("token=", 1)[1]
+
+
 @dataclass
 class Api:
     client: httpx.AsyncClient
@@ -31,6 +45,7 @@ class Api:
     organization: Organization
     owner_email: str
     owner_id: str
+    mailer: RecordingMailer
 
     def cookie_header(self, **cookies: str) -> dict[str, str]:
         return {"Cookie": "; ".join(f"{k}={v}" for k, v in cookies.items())}
@@ -62,12 +77,13 @@ async def api(
 ) -> AsyncIterator[Api]:
     settings = make_settings()
     monkeypatch.setattr("app.main.get_settings", lambda: settings)
-    app = create_app(rate_limiter=InMemoryRateLimiter())
+    mailer = RecordingMailer()
+    app = create_app(rate_limiter=InMemoryRateLimiter(), mailer=mailer)
     try:
         async with app.router.lifespan_context(app):
             transport = httpx.ASGITransport(app=app, client=("203.0.113.7", 50000))
             async with httpx.AsyncClient(transport=transport, base_url=BASE_URL) as client:
-                api = Api(client, app, settings, None, "", "")  # type: ignore[arg-type]
+                api = Api(client, app, settings, None, "", "", mailer)  # type: ignore[arg-type]
                 org, email = await api.add_tenant("alpha")
                 owner = await app.state.store.admin_auth().find_by_email(email)
                 assert owner is not None

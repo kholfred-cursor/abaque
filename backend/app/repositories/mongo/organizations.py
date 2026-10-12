@@ -9,10 +9,11 @@ from bson import ObjectId
 from pymongo import AsyncMongoClient
 from pymongo.asynchronous.client_session import AsyncClientSession
 from pymongo.asynchronous.database import AsyncDatabase
+from pymongo.errors import DuplicateKeyError
 
 from app.core.identity import normalize_email
 from app.db.client import run_in_transaction
-from app.domain.errors import NotFound
+from app.domain.errors import EmailAlreadyRegistered, NotFound
 from app.domain.models import (
     Admin,
     AdminCreate,
@@ -103,7 +104,12 @@ class OrganizationProvisioningRepository:
                 admin_from_document(owner_document),
             )
 
-        return await run_in_transaction(self.client, create)
+        try:
+            return await run_in_transaction(self.client, create)
+        except DuplicateKeyError as exc:
+            if "email" in str((exc.details or {}).get("keyPattern", {})):
+                raise EmailAlreadyRegistered from exc
+            raise
 
 
 class OrganizationRepository(TenantScopedRepository):

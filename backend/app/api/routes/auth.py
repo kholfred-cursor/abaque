@@ -37,7 +37,7 @@ class MeResponse(BaseModel):
     organization: OrganizationSummary | None
 
 
-def _client_ip(request: Request) -> str:
+def client_ip(request: Request) -> str:
     # Resolved by uvicorn from trusted proxies only; X-Forwarded-For is never read here.
     return request.client.host if request.client is not None else "unknown"
 
@@ -69,7 +69,12 @@ async def login(
     store: StoreDep,
 ) -> MeResponse:
     try:
-        issued = await service.login(payload.email, payload.password, _client_ip(request))
+        issued = await service.login(
+            payload.email,
+            payload.password,
+            client_ip(request),
+            request.headers.get("user-agent"),
+        )
     except RateLimited as exc:
         raise ApiError(
             429,

@@ -13,7 +13,7 @@ Mis à jour à chaque bloc intégré. Branche de travail : `lot-0-socle` ; `main
 | 4a | Droits par offre, domaine, repositories organisations et animateurs | ✅ |
 | 4b | Sessions, jetons à usage unique, tests de concurrence et d'architecture | ✅ |
 | 5a | Connexion, renouvellement de session, déconnexion, profil, organisation, CSRF, limite de débit | ✅ |
-| 5b | Inscription, vérification de l'e-mail, mot de passe oublié / réinitialisation / changement, gestion des sessions | à faire |
+| 5b | Inscription, vérification de l'e-mail, mot de passe oublié / réinitialisation / changement, gestion des sessions | ✅ |
 | 6 | Tests d'isolation appliqués automatiquement à toutes les routes | à faire |
 | 7 | Écrans React (connexion, inscription, mot de passe, tableau de bord, tokens de design, `/v/:slug`) | à faire |
 
@@ -37,6 +37,9 @@ Mis à jour à chaque bloc intégré. Branche de travail : `lot-0-socle` ; `main
 - Garantir qu'un animateur ne voit jamais les données d'une autre organisation (réponse 404, jamais 403).
 - Connecter un animateur avec 3 cookies (session courte, renouvellement, protection CSRF) ; refuser de la même façon un e-mail inconnu et un mauvais mot de passe ; bloquer les tentatives répétées.
 - Renouveler la session sans déconnecter l'utilisateur qui a deux onglets ouverts ; détecter le rejeu d'un jeton volé et fermer alors toutes ses sessions.
+- Inscrire une nouvelle organisation en essai, sans jamais révéler si une adresse a déjà un compte ; envoyer et vérifier le lien de confirmation de l'e-mail.
+- Réinitialiser un mot de passe oublié par un lien valable 30 minutes et utilisable une seule fois, puis fermer toutes les sessions ; changer son mot de passe en gardant la session en cours.
+- Lister ses sessions actives (« Firefox · Windows », date de création, session courante) et en fermer une ou toutes les autres.
 - Ne jamais écrire de mot de passe, de jeton ni d'adresse e-mail en clair dans les journaux.
 
 ## Décisions récentes
@@ -45,6 +48,7 @@ Mis à jour à chaque bloc intégré. Branche de travail : `lot-0-socle` ; `main
 - **D028** — les droits stockés sont des surcharges de l'offre, recalculés à chaque lecture : changer d'offre s'applique immédiatement.
 - **D029** — fenêtre de 10 s pour le renouvellement de session simultané de deux onglets ; au-delà, rejeu = révocation de toutes les sessions.
 - **D030** — l'API et les services passent par `MongoStore` et n'importent jamais `pymongo`.
+- **D031** — inscription et mot de passe oublié toujours neutres (202) ; un mot de passe refusé ne fait pas perdre le lien de réinitialisation.
 
 ## Risques acceptés (lot 0)
 

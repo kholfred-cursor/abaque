@@ -117,3 +117,11 @@ Consommation atomique (`used_at` posé une seule fois, `expires_at` toujours vé
 - **Décision** : l'API et les services reçoivent un `MongoStore` (créé dans le `lifespan`) et lui demandent leurs repositories (`store.admin_auth()`, `store.organizations(tenant)`…). Ils n'importent jamais `pymongo` ni `bson` ; le test d'architecture le vérifie (il a détecté la première version du bloc 5a qui le faisait).
 - **Limite de débit** : fenêtre glissante simple (10 essais par IP et 5 par compte en 15 min), **sans délai progressif** au lot 0. Le compteur du compte est remis à zéro après une connexion réussie.
 - **Accepté** : après une déconnexion, l'access token déjà émis reste valide jusqu'à 15 min (pas de liste de révocation, cf. `lot0-05`).
+
+## D031 — Comptes : réponses neutres, exemptions CSRF, jeton préservé
+- `signup` et `password/forgot` répondent **toujours 202**, que le compte existe ou non. Un e-mail déjà inscrit reçoit le message « vous avez déjà un compte » au lieu d'un lien de vérification. Le mot de passe est haché dans les deux cas, pour un temps de réponse comparable.
+- **Exemptions CSRF** supplémentaires : `verify-email` et `password/reset`. Ces requêtes portent dans le corps un jeton secret à usage unique, qu'un site tiers ne peut pas connaître, et elles arrivent depuis un lien d'e-mail, sans session ni cookie CSRF.
+- **Réinitialisation** : la politique de mot de passe est vérifiée **avant** de consommer le jeton (`peek` puis `consume`). Un mot de passe refusé ne fait donc pas perdre le lien. Après succès : jetons de réinitialisation supprimés et **toutes** les sessions révoquées.
+- **Changement de mot de passe** : un mot de passe actuel incorrect renvoie **400 `WRONG_PASSWORD`** et non 401, pour que le front ne tente pas de rafraîchir la session ; les autres sessions sont révoquées, la session courante est conservée.
+- **Sessions** : seule une description courte de l'appareil est stockée (« Firefox · Windows »), jamais l'en-tête `User-Agent` brut. Révoquer la session d'un autre administrateur renvoie 404.
+- Le *slug* d'une organisation reçoit un suffixe aléatoire : il ne révèle jamais qu'un nom est déjà pris.

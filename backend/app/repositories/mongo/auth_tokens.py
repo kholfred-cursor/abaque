@@ -78,3 +78,19 @@ class AuthTokenRepository:
         await self.database["auth_tokens"].delete_many(
             {"admin_id": _object_id(admin_id), "purpose": purpose}, **self._options(session)
         )
+
+    async def peek(
+        self, token_hash: str, purpose: str, session: AsyncClientSession | None = None
+    ) -> str | None:
+        """Admin id of a still-usable token, WITHOUT consuming it (validate input first)."""
+        document = await self.database["auth_tokens"].find_one(
+            {
+                "token_hash": token_hash,
+                "purpose": purpose,
+                "used_at": None,
+                "expires_at": {"$gt": datetime.now(UTC)},
+            },
+            {"admin_id": 1},
+            **self._options(session),
+        )
+        return None if document is None else str(document["admin_id"])

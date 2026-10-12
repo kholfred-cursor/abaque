@@ -59,6 +59,7 @@ class AdminSessionRepository:
         token_hash: str,
         expires_at: datetime,
         session: AsyncClientSession | None = None,
+        user_agent_hint: str | None = None,
     ) -> AdminSession:
         document: dict[str, Any] = {
             "_id": ObjectId(),
@@ -69,7 +70,7 @@ class AdminSessionRepository:
             "last_used_at": None,
             "revoked_at": None,
             "consumed_at": None,
-            "user_agent_hint": None,
+            "user_agent_hint": None if user_agent_hint is None else user_agent_hint[:200],
         }
         await self.database["admin_sessions"].insert_one(document, **self._options(session))
         return _session(document)
@@ -131,7 +132,11 @@ class AdminSessionRepository:
                     raise SessionReuseDetected(str(previous["admin_id"]))
                 raise NotFound("Resource not found")
             return await self.create(
-                str(old["admin_id"]), new_token_hash, expires_at, session=transaction
+                str(old["admin_id"]),
+                new_token_hash,
+                expires_at,
+                session=transaction,
+                user_agent_hint=old.get("user_agent_hint"),
             )
 
         try:
@@ -141,3 +146,46 @@ class AdminSessionRepository:
         except SessionReuseDetected as exc:
             await self.revoke_all_for_admin(exc.admin_id)
             raise
+
+    async def list_active(
+        self, admin_id: str, session: AsyncClientSession | None = None
+    ) -> list[AdminSession]:
+        """Sessions that can still be refreshed, newest first."""
+        cursor = (
+            self.database["admin_sessions"]
+            .find(
+                {
+                    "admin_id": _object_id(admin_id),
+                    "revoked_at": None,
+                    "consumed_at": None,
+                    "expires_at": {"$gt": datetime.now(UTC)},
+                },
+                **self._options(session),
+            )
+            .sort("created_at", -1)
+        )
+        return [_session(dict(document)) for document in await cursor.to_list(None)]
+
+    async def revoke_by_id(
+        self, admin_id: str, session_id: str, session: AsyncClientSession | None = None
+    ) -> None:
+        """Revoke one session of this administrator; another admin's session is NotFound."""
+        result = await self.database["admin_sessions"].update_one(
+            {"_id": _object_id(session_id), "admin_id": _object_id(admin_id), "revoked_at": None},
+            {"$set": {"revoked_at": datetime.now(UTC)}},
+            **self._options(session),
+        )
+        if result.matched_count != 1:
+            raise NotFound("Resource not found")
+
+    async def revoke_all_except(
+        self, admin_id: str, keep_token_hash: str | None, session: AsyncClientSession | None = None
+    ) -> int:
+        """Revoke every active session of the administrator except the current one."""
+        query: dict[str, Any] = {"admin_id": _object_id(admin_id), "revoked_at": None}
+        if keep_token_hash is not None:
+            query["token_hash"] = {"$ne": keep_token_hash}
+        result = await self.database["admin_sessions"].update_many(
+            query, {"$set": {"revoked_at": datetime.now(UTC)}}, **self._options(session)
+        )
+        return result.modified_count

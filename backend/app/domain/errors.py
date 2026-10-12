@@ -13,3 +13,7 @@ class TenantScopeError(ValueError):
 
 class AlreadyConsumed(Exception):  # noqa: N818
     """Raised when a single-use credential or token has already been consumed."""
+
+
+class EmailAlreadyRegistered(Exception):  # noqa: N818
+    """Raised by signup when the (normalized) email already has an account."""
