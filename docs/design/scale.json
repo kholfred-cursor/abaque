@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "scale": [
+    { "key": "++", "hex": "#2e8b3c", "symbol": "++", "weight": 2,  "labels": { "agreement": "Tout à fait d'accord", "score": "5 — Élevé" } },
+    { "key": "+",  "hex": "#7ecb4d", "symbol": "+",  "weight": 1,  "labels": { "agreement": "Plutôt d'accord", "score": "4 — Moyen" } },
+    { "key": "~",  "hex": "#f5d94e", "symbol": "~",  "weight": 0,  "labels": { "agreement": "Avis partagé, opinion mitigée", "score": "3 — Incertain / Mitigé" } },
+    { "key": "-",  "hex": "#f0a8b8", "symbol": "−",  "weight": -1, "labels": { "agreement": "Plutôt pas d'accord", "score": "2 — Faible" } },
+    { "key": "--", "hex": "#e83030", "symbol": "−−", "weight": -2, "labels": { "agreement": "Pas du tout d'accord", "score": "1 — Très faible" } }
+  ],
+  "notes": "textColor est calculé dans frontend/src/shared/design/scale.ts pour un contraste d'au moins 4,5:1 ; un test vérifie l'égalité de ce fichier avec scale.ts."
+}

@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+htmlcov/
+.coverage
+.coverage.*
+.venv/
+venv/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Environnement (seul .env.example est versionné)
+.env
+.env.*
+!.env.example
+
+# Éditeurs et système
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Données locales et générées
+mongo-data/
+exports/
+*.log
+/openapi.json
+
+# Fichiers de référence externes (prototype ToneVote, etc.) : jamais publiés
+reference/
+
+# NB : frontend/src/shared/api/schema.d.ts est VERSIONNÉ (contrôlé par le job CI `contract`)
