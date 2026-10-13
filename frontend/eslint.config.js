@@ -19,6 +19,10 @@ export default tseslint.config(
           selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
           message: "dangerouslySetInnerHTML est interdit (CSP, D-sécurité).",
         },
+        {
+          selector: "JSXAttribute[name.name='style']",
+          message: "Attribut style interdit : la CSP (style-src 'self') le bloque. Utiliser une classe CSS.",
+        },
       ],
       "no-restricted-globals": [
         "error",

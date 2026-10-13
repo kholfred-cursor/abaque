@@ -98,4 +98,11 @@ Les jetons présents dans l'URL sont envoyés à l'API puis **retirés** avec `h
 - **Statiques** : aucun `localStorage` ni `sessionStorage` dans `src/` ; aucun import de `backend`.
 
 ## Critère de fin
-Sur `http://localhost:5173` : connexion avec `admin@abaque.local` / `admin`, tableau de bord vide, page des sessions, déconnexion. `/v/test` affiche « Bientôt disponible » sur mobile. `lint`, `typecheck`, `test` et `build` passent, et le job `contract` est vert.
+Sur `http://localhost:5173` : connexion avec `admin@demo.example.com` / `admin`, tableau de bord vide, page des sessions, déconnexion. `/v/test` affiche « Bientôt disponible » sur mobile. `lint`, `typecheck`, `test` et `build` passent, et le job `contract` est vert.
+
+## Réalisation (2026-10-13)
+Bloc réalisé hors de l'agent. Écarts avec la spécification ci-dessus :
+- comptes de démonstration en `demo.example.com` au lieu de `.local` (D033) ;
+- la cohérence des clés de couleur avec le backend est vérifiée par `scale.json` des deux côtés, sans que le front lise un fichier du backend (D034) ;
+- les tests de composants sont regroupés dans `src/pages.test.tsx`, `src/shared/api/client.test.ts` et `src/shared/design/design.test.ts` ;
+- le critère de fin a été vérifié dans Chromium contre l'API et MongoDB réels.

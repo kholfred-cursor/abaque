@@ -7,10 +7,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 ### Cadrage (2026-10-12)
 - Spécification `docs/PROMPT_MVP.md` figée (SaaS multi-organisations, anonymat, 6 lots).
 - Dossier `docs/architecture/` : spécifications détaillées du lot 0 (blocs 1 à 7) et des garanties (transaction de vote, anonymat, exports, tests du lot 2, production).
-- `docs/DECISIONS.md` : D001 à D032.
+- `docs/DECISIONS.md` : D001 à D034.
 - `docs/adr/0001-stack.md`.
 
-### Lot 0 — Socle (en cours)
+### Lot 0 — Socle (terminé le 2026-10-13)
 - Blocs 1 et 2 produits puis corrigés (types OpenAPI commités, virtualenv hors du volume, nginx avec en-têtes par `location` et proxy `/api`, 1 worker, secrets de CI générés, SHA vérifiés, Dependabot uv avec groupes).
 - Bloc 3 : partie a corrigée et validée (sous réserve des ajustements de lint : imports inutilisés, `per-file-ignores`, `noqa` inutile, code de sortie du script de mots de passe) ; partie b à produire. Historique : (voir `docs/architecture/lot0-03-core-db.md`, `lot0-05-auth-api.md` et `vote-transaction.md`). Précisions ajoutées : transactions via `with_transaction` (D024), normalisation des e-mails (D023), schémas `auth_tokens` et `participant_links`, `additionalProperties: false` à chaque niveau.
 
@@ -25,6 +25,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 - **Bloc 5a (2026-10-12)**, réalisé hors de l'agent : format d'erreur unique, dépendances (`current_admin`, `require_verified`, `require_role`, `current_org`, CSRF à double soumission), 3 cookies conformes à la spécification, limite de débit en mémoire, `Mailer` (console en développement, refusé en production), routes `login`, `refresh` (409 en cas de course entre onglets, 401 et révocation globale en cas de rejeu), `logout`, `me`, `organization`. `MongoStore` (D030), D020 tranchée (403). 24 tests HTTP, dont des tests de non-régression vérifiés par mutation (CSRF désactivé, cookie affaibli). 155 tests, couverture 93 %. Types OpenAPI du front régénérés.
 - **Bloc 5b (2026-10-12)**, réalisé hors de l'agent : inscription (organisation en essai et propriétaire non vérifié, réponse neutre), vérification de l'e-mail et renvoi, mot de passe oublié et réinitialisation (révocation de toutes les sessions), changement de mot de passe (révocation des autres sessions), liste et révocation des sessions avec description courte de l'appareil. D031. 18 tests HTTP, dont deux vérifiés par mutation. 173 tests, couverture 93 %.
 - **Bloc 6 (2026-10-12)**, réalisé hors de l'agent : test d'isolation appliqué automatiquement à toute route d'organisation (une route sans test fait échouer la CI) ; `run_in_transaction` sous pannes injectées (`TransientTransactionError` → callback rejoué, un seul document ; `UnknownTransactionCommitResult` → callback **une seule fois** ; erreur métier → rien d'écrit) ; validateurs en profondeur (sous-objets, éléments de tableaux, clés de mois) ; seuil d'anonymat < 3 rejeté ; 20 rotations et 20 consommations concurrentes → un seul succès ; le front n'importe jamais le backend ; profils Hypothesis. D032. 192 tests, couverture 93 %.
+
+- **Bloc 7 — écrans React (2026-10-13)**, réalisé hors de l'agent : tokens de design (`tokens.ts` et son miroir `tokens.css`, échelle à 5 couleurs avec symboles et contraste d'au moins 4,5:1), police auto-hébergée, textes de l'interface regroupés dans `i18n/fr.ts`, client API (CSRF, renouvellement unique et partagé, rejeu, expiration de session), écrans de connexion, d'inscription, de vérification de l'e-mail, de mot de passe oublié et de réinitialisation, tableau de bord vide, gestion des sessions, bannière « e-mail non vérifié », page participant `/v/:slug`, 404, page des tokens en développement uniquement. 30 tests de composants. Vérifié dans un vrai navigateur (Chromium) contre l'API et MongoDB : connexion du compte de démonstration, cookies conformes, session conservée au rechargement, déconnexion, aucun débordement à 360 px, aucun contrôle de moins de 44 px. Corrections : les comptes de démonstration en `.local` ne pouvaient pas se connecter (D033) ; la vérification des clés de couleur passe par `scale.json` côté backend. D034. Backend : 194 tests, couverture 93 %.
 
 #### Reporté au lot 1
 - Activation du job CI `e2e` (premier parcours Playwright : vote anonyme sur viewport mobile).

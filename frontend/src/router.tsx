@@ -1,4 +1,4 @@
 import { createBrowserRouter } from "react-router";
-import { routes } from "./routes";
+import { buildRoutes } from "./routes";
 
-export const router = createBrowserRouter(routes);
+export const router = createBrowserRouter(buildRoutes(import.meta.env.DEV));

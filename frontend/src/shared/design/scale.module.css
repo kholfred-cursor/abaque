@@ -1,0 +1,22 @@
+/* Mirror of scale.ts colours (checked by scale.test.ts). Classes, not inline styles:
+   the Content-Security-Policy forbids style attributes. */
+.veryHigh {
+  background: #2e8b3c;
+  color: #000000;
+}
+.high {
+  background: #7ecb4d;
+  color: #1f2a33;
+}
+.mixed {
+  background: #f5d94e;
+  color: #1f2a33;
+}
+.low {
+  background: #f0a8b8;
+  color: #1f2a33;
+}
+.veryLow {
+  background: #e83030;
+  color: #000000;
+}

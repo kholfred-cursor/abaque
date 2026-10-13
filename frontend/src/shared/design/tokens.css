@@ -1,0 +1,33 @@
+/* Mirror of tokens.ts (checked by tokens.test.ts). Edit both together. */
+:root {
+  --color-paper: #f7f9fb;
+  --color-surface: #ffffff;
+  --color-ink: #1f2a33;
+  --color-muted: #566573;
+  --color-line: #d3dae1;
+  --color-action: #1a5fb4;
+  --color-action-ink: #ffffff;
+  --color-danger: #a8231c;
+  --color-danger-surface: #fdecea;
+  --color-notice: #7a5a00;
+  --color-notice-surface: #fff6d6;
+  --color-success: #1e6b2e;
+  --color-success-surface: #e6f4ea;
+  --color-focus: #1a5fb4;
+  --font-family: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+  --font-size-small: 0.875rem;
+  --font-size-body: 1rem;
+  --font-size-lead: 1.25rem;
+  --font-size-title: 1.75rem;
+  --font-line-height: 1.5;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --radius-control: 6px;
+  --radius-panel: 10px;
+  --size-touch: 44px;
+  --size-content: 60rem;
+  --size-form: 26rem;
+}

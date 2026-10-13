@@ -95,7 +95,7 @@ async def test_production_rejects_demo_accounts(
 ) -> None:
     """Demo accounts cannot remain when production migrations run."""
     admin = valid_document("admins", ALL_SCHEMAS["admins"])
-    admin["email"] = "admin@abaque.local"
+    admin["email"] = "admin@demo.example.com"
     await migrated_database.database["admins"].insert_one(admin)
     production_settings = make_settings(
         ENVIRONMENT="production",

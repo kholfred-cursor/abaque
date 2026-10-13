@@ -131,3 +131,19 @@ Consommation atomique (`used_at` posé une seule fois, `expires_at` toujours vé
 - **Support HTTP partagé** dans `tests/api_support.py`, chargé pour tous les tests par `pytest_plugins` (fixture `api` : application démarrée, base migrée, propriétaire connecté, mailer qui enregistre les e-mails).
 - **Isolation automatique** (`tests/architecture/test_routes_tenancy.py`) : toute route dont l'arbre de dépendances contient `current_org` doit avoir une entrée dans `RESOURCE_FACTORIES`, sinon le test échoue. FastAPI 0.143 garde les routeurs inclus sous forme paresseuse (`_IncludedRouter`) : ils sont dépliés récursivement, et un test de garde échoue si la découverte ne trouve plus `/api/organization`.
 - **Hypothesis** : profils `ci` (500 exemples) et `dev` (50), choisis par `HYPOTHESIS_PROFILE`.
+
+## D033 — Comptes de démonstration en `demo.example.com`
+- Les comptes de démonstration deviennent `admin@demo.example.com` et `other@demo.example.com` (mot de passe `admin`, développement uniquement). Les anciennes adresses en `.local` étaient rejetées par la validation des e-mails (`email-validator` refuse ce domaine réservé) : le compte de démonstration **ne pouvait jamais se connecter**.
+- `example.com` est réservé par la RFC 2606 : aucune adresse réelle n'est concernée.
+- La garde de production refuse les nouvelles adresses **et** les anciennes, au cas où une base créée avant ce changement en contiendrait encore.
+- Un test de bout en bout (`tests/api/test_demo_login.py`) lance le seed puis connecte chaque compte de démonstration ; la même connexion a été vérifiée dans un vrai navigateur.
+
+## D034 — Choix d'implémentation du front (bloc 7)
+- **Aucun attribut `style`** dans le JSX : la CSP impose `style-src 'self'`. Tout passe par des CSS Modules, et une règle ESLint l'interdit.
+- **Police auto-hébergée** (Atkinson Hyperlegible Next, paquet `@fontsource-variable`) : aucun appel à un CDN de polices, ce qui reste compatible avec la CSP et avec le RGPD.
+- **Échelle de couleurs** : texte noir sur le vert foncé et le rouge (ni le blanc ni l'ardoise n'atteignent 4,5:1), texte ardoise sur les trois autres. Chaque couleur a un symbole distinct (`++ + ~ − −−`) : la couleur n'est jamais la seule information.
+- **État d'authentification** : il vient uniquement de `GET /api/auth/me`. Rien n'est stocké dans le navigateur en dehors des cookies posés par l'API.
+- **Renouvellement de session** dans le client API : sur une réponse 401, un seul `refresh` partagé entre les requêtes simultanées (204 ou 409 valent succès), puis la requête est rejouée **une fois**. Si le renouvellement échoue, l'événement `abaque:session-expired` renvoie vers `/connexion?expired=1`. Sans cookie `abq_csrf`, aucune session n'existe : le client ne tente pas de renouvellement, ce qui évite un 403 inutile à chaque visite anonyme.
+- **Jetons dans l'URL** (vérification, réinitialisation) : lus une fois puis retirés de la barre d'adresse et de l'historique ; la vérification n'est envoyée qu'une seule fois, même en StrictMode.
+- **Accessibilité** : erreurs annoncées (`role="alert"`) et focalisées, focus sur le premier champ invalide, cibles de 44 px, focus visible, `prefers-reduced-motion`. Le bouton « Afficher » du mot de passe garde un nom accessible fixe (« Afficher le mot de passe ») et indique son état par `aria-pressed`.
+- **Cohérence entre front et backend sans dépendance** : `docs/design/scale.json` est la source commune. Le front vérifie `scale.ts` contre ce fichier, le backend vérifie `COLOR_KEYS` contre le même fichier. Le front n'importe jamais de fichier du backend, ce que vérifie le test d'architecture. Vite n'autorise en lecture hors de `frontend/` que `docs/design`.

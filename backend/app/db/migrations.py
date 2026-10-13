@@ -17,6 +17,9 @@ from app.db.schemas import ALL_SCHEMAS
 
 logger = logging.getLogger(__name__)
 
+# Development-only accounts created by the seed (D033). Production refuses to start if any exists.
+DEMO_ACCOUNT_EMAILS = ("admin@demo.example.com", "other@demo.example.com")
+
 
 @dataclass(frozen=True)
 class MigrationSummary:
@@ -128,7 +131,7 @@ async def _assert_key_rotation_is_safe(database: AsyncDatabase[Any], settings: S
 
 async def _assert_no_demo_accounts(database: AsyncDatabase[Any]) -> None:
     demo_account = await database["admins"].find_one(
-        {"email": {"$in": ["admin@abaque.local", "other@abaque.local"]}},
+        {"email": {"$in": [*DEMO_ACCOUNT_EMAILS, "admin@abaque.local", "other@abaque.local"]}},
         {"_id": 1},
     )
     if demo_account is not None:

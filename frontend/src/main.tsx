@@ -1,8 +1,11 @@
+import "@fontsource-variable/atkinson-hyperlegible-next";
+import "./shared/design/tokens.css";
+import "./index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router";
+import { Providers } from "./App";
 import { router } from "./router";
-import "./index.css";
 
 const container = document.getElementById("root");
 if (container === null) {
@@ -11,6 +14,8 @@ if (container === null) {
 
 createRoot(container).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <Providers>
+      <RouterProvider router={router} />
+    </Providers>
   </StrictMode>,
 );

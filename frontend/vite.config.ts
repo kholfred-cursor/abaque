@@ -7,6 +7,8 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    // Tests cross-check two reference files outside frontend/ (scale.json, COLOR_KEYS).
+    fs: { allow: [".", "../docs/design"] },
     proxy: {
       "/api": { target: "http://api:8000", changeOrigin: false },
       "/health": { target: "http://api:8000", changeOrigin: false },
@@ -16,7 +18,10 @@ export default defineConfig({
     sourcemap: false,
   },
   test: {
-    environment: "node",
+    environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["src/test/setup.ts"],
+    // Process CSS so `?raw` imports return the real file (design mirror tests).
+    css: true,
   },
 });

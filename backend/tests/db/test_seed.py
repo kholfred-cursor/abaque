@@ -22,6 +22,6 @@ async def test_demo_seed_is_idempotent(migrated_database: MigratedDatabase) -> N
     admin_by_email = {str(admin["email"]): admin for admin in admins}
 
     assert {str(organization["name"]) for organization in organizations} == {"Démo", "Autre"}
-    assert set(admin_by_email) == {"admin@abaque.local", "other@abaque.local"}
+    assert set(admin_by_email) == {"admin@demo.example.com", "other@demo.example.com"}
     assert len({admin["organization_id"] for admin in admins}) == 2
-    assert verify_password("admin", str(admin_by_email["admin@abaque.local"]["password_hash"]))
+    assert verify_password("admin", str(admin_by_email["admin@demo.example.com"]["password_hash"]))

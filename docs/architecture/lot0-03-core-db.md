@@ -121,7 +121,7 @@ Liste déclarative, avec un **nom explicite et stable** pour chaque index :
 3. Créer les index. Si un index du même nom a une autre définition : échec explicite, **jamais** de suppression silencieuse.
 4. Profiler désactivé (`profile: 0`), `slowms` selon `MONGO_SLOWMS` (élevé en production).
 5. **Contrôle de rotation de clé** : si une version `open` a un `credential_key_id` différent de celui de la configuration, échec avec le message « rotation de CREDENTIAL_HMAC_KEY interdite tant qu'une version est ouverte ».
-6. **En production** : échec si `admin@abaque.local` ou `other@abaque.local` existe.
+6. **En production** : échec si `admin@demo.example.com` ou `other@demo.example.com` existe.
 
 Un journal résume les créations et modifications, sans aucune donnée.
 
@@ -132,7 +132,7 @@ Un journal résume les créations et modifications, sans aucune donnée.
 
 ## `app/db/seed.py`
 - Exécuté si `SEED_DEMO=true` **et** `ENVIRONMENT=development`, de façon idempotente (`upsert`).
-- Organisation « Démo » (`plan_code: "trial"`) avec `admin@abaque.local` / `admin`, et organisation « Autre » avec `other@abaque.local` / `admin`, pour les tests d'isolation.
+- Organisation « Démo » (`plan_code: "trial"`) avec `admin@demo.example.com` / `admin`, et organisation « Autre » avec `other@demo.example.com` / `admin`, pour les tests d'isolation.
 - Mots de passe hachés en argon2id, en **contournant la politique de mot de passe**. C'est le **seul** endroit du code où ce contournement est autorisé.
 
 ## `backend/scripts/export_openapi.py`

@@ -104,12 +104,12 @@ async def seed_demo(database: AsyncDatabase[Any], settings: Settings) -> bool:
     )
     await _seed_admin(
         database,
-        email="admin@abaque.local",
+        email="admin@demo.example.com",
         organization_id=demo_organization_id,
     )
     await _seed_admin(
         database,
-        email="other@abaque.local",
+        email="other@demo.example.com",
         organization_id=other_organization_id,
     )
     logger.info("Development demo seed applied")
