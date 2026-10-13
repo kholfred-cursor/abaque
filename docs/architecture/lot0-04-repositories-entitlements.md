@@ -14,11 +14,12 @@
 - Repositories **hors organisation**, explicitement nommés :
   - `AdminAuthRepository` (connexion par e-mail) ;
   - `AdminSessionRepository` et `AuthTokenRepository` (recherche par `token_hash`) ;
+  - `OrganizationProvisioningRepository` (inscription : `create_with_owner`, aucune organisation n'existe encore — D028) ;
   - `platform/PlatformOrganizationRepository` (super-administrateur : liste, changement d'offre, suspension). **Aucun accès** aux domaines vote et identité.
 
 ## Implémentés au lot 0
+- `OrganizationProvisioningRepository.create_with_owner` (transaction).
 - `OrganizationRepository` :
-  - `create_with_owner` (transaction) ;
   - `get_current` ;
   - `get_entitlements` ;
   - `increment_usage(month, key, n, session)` (`$inc` sur `usage.YYYY-MM.key`).

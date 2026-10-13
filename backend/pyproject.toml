@@ -1,0 +1,65 @@
+[project]
+name = "abaque-backend"
+version = "0.1.0"
+description = "Abaque — Collective evaluation tool (Régnier abacus method)"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.143.0,<1.0",
+    "uvicorn[standard]>=0.32.0,<1.0",
+    "pymongo>=4.18.0,<5.0",
+    "pydantic>=2.10.0,<3.0",
+    "pydantic-settings>=2.15.0,<3.0",
+    "argon2-cffi>=25.1.0,<26.0",
+    "PyJWT>=2.15.0,<3.0",
+    "APScheduler>=3.11.0,<4.0",
+    "email-validator>=2.2.0,<3.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0,<9.0",
+    "pytest-asyncio>=1.4.0,<2.0",
+    "pytest-cov>=6.0,<7.0",
+    "hypothesis>=6.120.0,<7.0",
+    "ruff>=0.8.0",
+    "mypy>=1.14.0,<2.0",
+    "httpx>=0.28.0,<1.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=app --cov-branch"
+markers = [
+    "unit: pure unit tests, no I/O",
+    "integration: tests requiring MongoDB",
+    "property: Hypothesis property-based tests",
+    "concurrency: concurrent access tests",
+    "architecture: import and structure checks",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "S", "T20", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]
+"scripts/**" = ["T20"]
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true

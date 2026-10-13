@@ -1,0 +1,120 @@
+/* ── Public pages (login, signup, password): scale column + form ── */
+.auth {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  min-height: 100vh;
+}
+.column {
+  display: grid;
+  grid-template-rows: repeat(5, 1fr);
+}
+.column .cell {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: var(--space-md);
+  font-size: var(--font-size-lead);
+  font-weight: 700;
+}
+.authMain {
+  width: 100%;
+  max-width: var(--size-form);
+  padding: var(--space-xl) var(--space-lg);
+  display: grid;
+  align-content: center;
+  gap: var(--space-lg);
+}
+.wordmark {
+  font-size: var(--font-size-lead);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* ── Application shell ── */
+.header {
+  background: var(--color-surface);
+}
+.headerInner {
+  max-width: var(--size-content);
+  margin: 0 auto;
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+.brand {
+  font-size: var(--font-size-lead);
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+  margin-right: auto;
+}
+.org {
+  color: var(--color-muted);
+}
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch);
+  padding: 0 var(--space-sm);
+  color: var(--color-action);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+.navLink[aria-current="page"] {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-ink);
+}
+.strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: 6px;
+}
+.content {
+  max-width: var(--size-content);
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md) var(--space-xl);
+  display: grid;
+  gap: var(--space-lg);
+}
+
+/* ── Participant pages: mobile-first, no admin chrome ── */
+.participant {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+.participantMain {
+  padding: var(--space-xl) var(--space-md);
+  max-width: 32rem;
+  display: grid;
+  gap: var(--space-md);
+  align-content: start;
+}
+
+@media (max-width: 40rem) {
+  .auth {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .column {
+    grid-template-rows: none;
+    grid-template-columns: repeat(5, 1fr);
+    height: 2.75rem;
+  }
+  .column .cell {
+    align-items: center;
+    padding-bottom: 0;
+    font-size: var(--font-size-body);
+  }
+  .authMain {
+    align-content: start;
+    padding: var(--space-lg) var(--space-md);
+  }
+}

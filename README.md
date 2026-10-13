@@ -22,7 +22,7 @@ docker compose up
 - Front : http://localhost:5173
 - API : http://localhost:8000 (documentation sur `/docs`)
 - Santé : http://localhost:8000/health
-- Compte de développement : `admin@abaque.local` / `admin` (seed, développement uniquement)
+- Compte de développement : `admin@demo.example.com` / `admin` (seed, développement uniquement)
 
 ## Commandes
 ```bash

@@ -3,7 +3,7 @@
 ## Fichiers à la racine
 | Fichier | Exigences |
 |---|---|
-| `README.md` | Présentation, prérequis (Docker Compose v2 ; Node 24 et Python 3.13 en option hors conteneur), démarrage (`cp .env.example .env` puis `docker compose up`), URL locales (front `:5173`, API `:8000`, `/docs`, `/health`), compte de développement `admin@abaque.local` / `admin`, commandes de test et de lint, reconstruction après un changement de dépendances (`docker compose build api` ou `web`), structure du monorepo, liens vers `docs/`. |
+| `README.md` | Présentation, prérequis (Docker Compose v2 ; Node 24 et Python 3.13 en option hors conteneur), démarrage (`cp .env.example .env` puis `docker compose up`), URL locales (front `:5173`, API `:8000`, `/docs`, `/health`), compte de développement `admin@demo.example.com` / `admin`, commandes de test et de lint, reconstruction après un changement de dépendances (`docker compose build api` ou `web`), structure du monorepo, liens vers `docs/`. |
 | `LICENSE` | `Copyright (c) 2026 [Titulaire des droits]. Tous droits réservés.` Le titulaire est complété par Fred. Jamais « Abaque » seul, qui n'est pas une personne juridique. |
 | `.gitignore` | Voir ci-dessous. |
 | `.nvmrc` | `24` |

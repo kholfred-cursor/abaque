@@ -2,6 +2,8 @@
 
 Ce dossier détaille **comment** construire ce que `docs/PROMPT_MVP.md` décrit. En cas d'écart, `PROMPT_MVP.md` l'emporte ; toute modification se fait dans les deux fichiers, dans le même commit.
 
+État d'avancement : voir [`../AVANCEMENT.md`](../AVANCEMENT.md).
+
 ## Lot 0 — Socle (un fichier par bloc de livraison)
 
 | Bloc | Fichier | Contenu |

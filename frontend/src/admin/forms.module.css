@@ -1,0 +1,8 @@
+.form {
+  display: grid;
+  gap: var(--space-lg);
+}
+.links {
+  display: grid;
+  gap: var(--space-sm);
+}

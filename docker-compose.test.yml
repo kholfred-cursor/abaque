@@ -1,0 +1,6 @@
+# Surcouche de test : active les commandes de test MongoDB (failCommand).
+# Usage : docker compose -f docker-compose.yml -f docker-compose.test.yml up
+# JAMAIS en production (D012).
+services:
+  mongo:
+    command: ["--replSet", "rs0", "--bind_ip_all", "--setParameter", "enableTestCommands=1"]
