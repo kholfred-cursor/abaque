@@ -23,6 +23,10 @@ class RateLimiter(Protocol):
 
     async def reset(self, key: str) -> None: ...
 
+    async def forget_prefix(self, prefix: str) -> None:
+        """Drop every key starting with prefix (e.g. hashed IPs of a closed version)."""
+        ...
+
 
 class InMemoryRateLimiter:
     def __init__(self) -> None:
@@ -51,3 +55,8 @@ class InMemoryRateLimiter:
     async def reset(self, key: str) -> None:
         async with self._lock:
             self._hits.pop(key, None)
+
+    async def forget_prefix(self, prefix: str) -> None:
+        async with self._lock:
+            for key in [key for key in self._hits if key.startswith(prefix)]:
+                del self._hits[key]

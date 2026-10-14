@@ -14,11 +14,13 @@ from pymongo.asynchronous.database import AsyncDatabase
 from app.domain.models import TenantContext
 from app.repositories.mongo.admins import AdminAuthRepository, AdminRepository
 from app.repositories.mongo.auth_tokens import AuthTokenRepository
+from app.repositories.mongo.content import ContentRepository
 from app.repositories.mongo.organizations import (
     OrganizationProvisioningRepository,
     OrganizationRepository,
 )
 from app.repositories.mongo.sessions import AdminSessionRepository
+from app.repositories.mongo.vote import MongoBallotReader, PublicVoteRepository
 
 
 class MongoStore:
@@ -39,9 +41,20 @@ class MongoStore:
     def provisioning(self) -> OrganizationProvisioningRepository:
         return OrganizationProvisioningRepository(self.database, self.client)
 
+    def public_vote(self) -> PublicVoteRepository:
+        """Reached through a public slug only; never returns the organization to callers."""
+        return PublicVoteRepository(self.database, self.client)
+
     # Tenant-scoped: require the context built by current_org.
     def organizations(self, tenant: TenantContext) -> OrganizationRepository:
         return OrganizationRepository(self.database, tenant)
 
     def admins(self, tenant: TenantContext) -> AdminRepository:
         return AdminRepository(self.database, tenant)
+
+    def content(self, tenant: TenantContext) -> ContentRepository:
+        return ContentRepository(self.database, self.client, tenant)
+
+    def ballot_reader(self, tenant: TenantContext) -> MongoBallotReader:
+        """Only app.services.export and app.services.restitution may call this."""
+        return MongoBallotReader(self.database, tenant)

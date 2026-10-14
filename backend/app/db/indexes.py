@@ -48,6 +48,22 @@ INDEXES: list[IndexDefinition] = [
         (("organization_id", 1), ("slug", 1)),
         unique=True,
     ),
+    # Lot 1 (D036): the public link resolves a slug across the whole platform.
+    IndexDefinition("evaluations", "uq_evaluations_slug", (("slug", 1),), unique=True),
+    # Lot 1 (D037): at most one open version per evaluation, enforced by the database.
+    IndexDefinition(
+        "versions",
+        "uq_versions_evaluation_id_open",
+        (("evaluation_id", 1),),
+        unique=True,
+        partial_filter={"status": "open"},
+    ),
+    IndexDefinition(
+        "color_labels",
+        "uq_color_labels_version_id_color_key",
+        (("version_id", 1), ("color_key", 1)),
+        unique=True,
+    ),
     IndexDefinition(
         "credential_uses",
         "uq_credential_uses_version_id_credential_fingerprint",
@@ -100,6 +116,16 @@ INDEXES: list[IndexDefinition] = [
     IndexDefinition(
         "ballots", "ix_ballots_version_id_rand_key", (("version_id", 1), ("rand_key", 1))
     ),
+    IndexDefinition("versions", "ix_versions_evaluation_id", (("evaluation_id", 1),)),
+    IndexDefinition(
+        "version_events", "ix_version_events_version_id_at", (("version_id", 1), ("at", 1))
+    ),
+    IndexDefinition(
+        "item_groups",
+        "ix_item_groups_version_id_position",
+        (("version_id", 1), ("position", 1)),
+    ),
+    IndexDefinition("items", "ix_items_version_id_position", (("version_id", 1), ("position", 1))),
     IndexDefinition("admins", "ix_admins_organization_id", (("organization_id", 1),)),
     IndexDefinition("evaluations", "ix_evaluations_organization_id", (("organization_id", 1),)),
     IndexDefinition("versions", "ix_versions_organization_id", (("organization_id", 1),)),

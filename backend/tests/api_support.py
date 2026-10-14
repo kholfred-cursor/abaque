@@ -12,6 +12,7 @@ from typing import Any
 import httpx
 import pytest
 import pytest_asyncio
+from bson import ObjectId
 from fastapi import FastAPI
 from pymongo import AsyncMongoClient
 
@@ -57,6 +58,48 @@ class Api:
         return await self.client.post(
             "/api/auth/login", json={"email": email or self.owner_email, "password": password}
         )
+
+    async def headers(self, email: str | None = None) -> dict[str, str]:
+        """Log in and return the Cookie and X-CSRF-Token headers of that session."""
+        response = await self.login(email)
+        assert response.status_code == 200, response.text
+        cookies = {
+            h.split("=", 1)[0]: h.split(";", 1)[0].split("=", 1)[1]
+            for h in response.headers.get_list("set-cookie")
+        }
+        return {**self.cookie_header(**cookies), "X-CSRF-Token": cookies["abq_csrf"]}
+
+    async def set_entitlements(self, organization_id: str, **overrides: object) -> None:
+        await self.app.state.database["organizations"].update_one(
+            {"_id": ObjectId(organization_id)}, {"$set": {"entitlements": overrides}}
+        )
+
+    async def new_evaluation(
+        self, headers: dict[str, str], title: str = "Climat social", items: int = 2
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Create an evaluation whose V1 has ``items`` items; return (evaluation, content)."""
+        created = await self.client.post("/api/evaluations", json={"title": title}, headers=headers)
+        assert created.status_code == 201, created.text
+        evaluation = created.json()
+        version_id = evaluation["versions"][0]["id"]
+        saved = await self.client.put(
+            f"/api/versions/{version_id}/content",
+            json={
+                "revision": 0,
+                "groups": [
+                    {
+                        "name": "Général",
+                        "items": [
+                            {"short_name": f"Item {n}", "statement": f"Affirmation {n}."}
+                            for n in range(1, items + 1)
+                        ],
+                    }
+                ],
+            },
+            headers=headers,
+        )
+        assert saved.status_code == 200, saved.text
+        return evaluation, saved.json()
 
     async def add_tenant(self, slug: str) -> tuple[Organization, str]:
         org, owner = await OrganizationProvisioningRepository(

@@ -17,10 +17,14 @@ from app.repositories.mongo.organizations import OrganizationRepository
 from app.repositories.mongo.store import MongoStore
 from app.services.account import AccountService
 from app.services.auth import AuthService
+from app.services.content import ContentService
+from app.services.export import ExportService
 from app.services.mailer import Mailer
 from app.services.rate_limit import RateLimiter
+from app.services.vote import VoteService
 
 UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+PUBLIC_PREFIX = "/api/public/"
 # Protected by SameSite + rate limiting instead (no session exists yet).
 # verify-email and password/reset carry a secret single-use token in the body, which a
 # cross-site attacker cannot know; the CSRF cookie may not even exist yet (link opened
@@ -77,9 +81,28 @@ def get_account_service(
     return AccountService(store, settings, rate_limiter, mailer)
 
 
+def _check_same_origin(request: Request) -> None:
+    origin = request.headers.get("origin")
+    if origin is None:
+        return  # same-origin navigations and non-browser clients send no Origin
+    settings: Settings = request.app.state.settings
+    allowed = {settings.APP_BASE_URL.rstrip("/")}
+    host = request.headers.get("host")
+    if host:
+        allowed |= {f"http://{host}", f"https://{host}"}
+    if origin.rstrip("/") not in allowed:
+        raise ApiError(403, "ORIGIN_REFUSED", "Requête refusée.")
+
+
 async def csrf_protect(request: Request) -> None:
     """Double-submit check on every state-changing request (constant-time comparison)."""
     if request.method not in UNSAFE_METHODS or request.url.path in CSRF_EXEMPT_PATHS:
+        return
+    if request.url.path.startswith(PUBLIC_PREFIX):
+        # Public vote: no session exists, so no CSRF cookie either. A JSON body is
+        # required (a cross-site form cannot send one without a CORS preflight, which
+        # the API never grants) and a foreign Origin is refused.
+        _check_same_origin(request)
         return
     if not verify_csrf_token(request.cookies.get(CSRF_COOKIE), request.headers.get("X-CSRF-Token")):
         raise ApiError(403, "CSRF_FAILED", "Requête refusée (jeton CSRF invalide).")
@@ -136,3 +159,42 @@ def organization_repository(store: StoreDep, tenant: TenantDep) -> OrganizationR
 
 def admin_repository(store: StoreDep, tenant: TenantDep) -> AdminRepository:
     return store.admins(tenant)
+
+
+async def verified_org(
+    _: Annotated[Admin, Depends(require_verified)], tenant: TenantDep
+) -> TenantContext:
+    """Tenant scope for content routes: the account must have confirmed its email."""
+    return tenant
+
+
+def get_content_service(
+    store: StoreDep,
+    settings: SettingsDep,
+    tenant: Annotated[TenantContext, Depends(verified_org)],
+    rate_limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
+) -> ContentService:
+    return ContentService(store, tenant, settings, rate_limiter)
+
+
+ContentDep = Annotated[ContentService, Depends(get_content_service)]
+
+
+def get_export_service(
+    store: StoreDep, tenant: Annotated[TenantContext, Depends(verified_org)]
+) -> ExportService:
+    return ExportService(store, tenant)
+
+
+ExportDep = Annotated[ExportService, Depends(get_export_service)]
+
+
+def get_vote_service(
+    store: StoreDep,
+    settings: SettingsDep,
+    rate_limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
+) -> VoteService:
+    return VoteService(store, settings, rate_limiter)
+
+
+VoteDep = Annotated[VoteService, Depends(get_vote_service)]

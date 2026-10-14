@@ -21,14 +21,39 @@ export default tseslint.config(
         },
         {
           selector: "JSXAttribute[name.name='style']",
-          message: "Attribut style interdit : la CSP (style-src 'self') le bloque. Utiliser une classe CSS.",
+          message:
+            "Attribut style interdit : la CSP (style-src 'self') le bloque. Utiliser une classe CSS.",
         },
       ],
       "no-restricted-globals": [
         "error",
-        { name: "localStorage", message: "Aucune donnée d'authentification en stockage local." },
-        { name: "sessionStorage", message: "Aucune donnée d'authentification en stockage local." },
+        {
+          name: "localStorage",
+          message: "Stockage navigateur interdit, sauf src/vote/draft.ts (D039).",
+        },
+        {
+          name: "sessionStorage",
+          message: "Stockage navigateur interdit, sauf src/vote/draft.ts (D039).",
+        },
+      ],
+      "no-restricted-properties": [
+        "error",
+        {
+          object: "window",
+          property: "localStorage",
+          message: "Stockage navigateur interdit, sauf src/vote/draft.ts (D039).",
+        },
+        {
+          object: "window",
+          property: "sessionStorage",
+          message: "Stockage navigateur interdit (D039).",
+        },
       ],
     },
+  },
+  {
+    // D039: the voter's local draft is the ONLY use of browser storage.
+    files: ["src/vote/draft.ts", "src/vote/draft.test.ts"],
+    rules: { "no-restricted-globals": "off", "no-restricted-properties": "off" },
   },
 );

@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.core.security import PasswordPolicyError
-from app.domain.errors import NotFound
+from app.domain.errors import NotFound, RuleViolation
 from app.entitlements.checker import FeatureNotAllowed, LimitReached
 
 
@@ -65,6 +65,10 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(NotFound)
     async def _not_found(_: Request, __: NotFound) -> JSONResponse:
         return error_response(404, "NOT_FOUND", "Ressource introuvable.")
+
+    @app.exception_handler(RuleViolation)
+    async def _rule(_: Request, exc: RuleViolation) -> JSONResponse:
+        return error_response(exc.status_code, exc.code, exc.message)
 
     @app.exception_handler(LimitReached)
     async def _limit(_: Request, __: LimitReached) -> JSONResponse:
