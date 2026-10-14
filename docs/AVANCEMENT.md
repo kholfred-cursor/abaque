@@ -24,7 +24,7 @@ Vérifié : connexion du compte de démonstration dans un vrai navigateur ; CI v
 
 | Lot | Contenu | État |
 |---|---|---|
-| 1 | Boucle de vote anonyme (évaluations, versions, items, lien et QR code, parcours de vote mobile) | en cours : blocs 1a ✅ (API des évaluations) et 1b ✅ (vote anonyme, export des bulletins) |
+| 1 | Boucle de vote anonyme (évaluations, versions, items, lien et QR code, parcours de vote mobile) | en cours : 1a ✅ API des évaluations, 1b ✅ vote anonyme et export, 1c ✅ écrans de l'animateur ; restent 1d (écrans de vote) et 1e (test de bout en bout) |
 | 2 | Moteurs, service de vote pour les 3 modes, garanties d'anonymat | à faire |
 | 3 | Accès nominatifs et collecte avancée (liens magiques, segmentation, questions ouvertes, e-mails réels) | à faire |
 | 4 | Restitution (matrices, histogrammes, exports CSV et PDF) | à faire |
@@ -33,6 +33,9 @@ Vérifié : connexion du compte de démonstration dans un vrai navigateur ; CI v
 ## Ce que l'application sait faire aujourd'hui
 
 ### À l'écran
+- Créer une évaluation, rédiger ses items par groupes (ou importer un fichier CSV), les réordonner à la souris ou au clavier, choisir l'échelle et les textes d'accueil et de fin.
+- Ouvrir le vote, afficher le lien et le QR code à projeter ou à télécharger, suivre le nombre de réponses, clore, rouvrir, archiver ou dupliquer une version, exporter les réponses.
+- Supprimer une évaluation après confirmation.
 - Se connecter, s'inscrire, confirmer son e-mail (avec renvoi du lien depuis une bannière), demander puis choisir un nouveau mot de passe ; afficher le mot de passe pendant la saisie.
 - Voir un tableau de bord vide (« Vous n'avez pas encore d'évaluation ») avec le nom de l'organisation et l'offre.
 - Voir ses sessions ouvertes, en fermer une ou toutes les autres.
@@ -40,7 +43,7 @@ Vérifié : connexion du compte de démonstration dans un vrai navigateur ; CI v
 - Utiliser toutes les pages au clavier et sur un téléphone de 360 px de large, avec un contraste suffisant et des messages d'erreur en français.
 - Ouvrir un lien participant `/v/…`, qui affiche pour l'instant « Bientôt disponible ».
 
-### Côté serveur (lot 1, sans écran pour l'instant)
+### Côté serveur (lot 1)
 - Créer une évaluation (avec un lien public aléatoire qui ne révèle ni l'organisation ni le titre), la modifier, la dupliquer, la supprimer avec tout son contenu.
 - Rédiger les items par groupes, les réordonner, les importer ou les exporter en CSV (le fichier d'exemple `docs/samples/items.csv` s'importe tel quel).
 - Choisir l'échelle : « Accord », « Score 1–5 » ou libellés personnalisés.

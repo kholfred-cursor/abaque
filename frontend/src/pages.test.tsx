@@ -1,24 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { StrictMode } from "react";
-import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
-import { Providers } from "./App";
-import { buildRoutes } from "./routes";
-import { createApiClient } from "./shared/api/client";
-import { apiError, fakeApi, json, ME, type FakeApi } from "./test/fakeApi";
-
-function renderApp(path: string, api: FakeApi, { strict = false } = {}) {
-  const router = createMemoryRouter(buildRoutes(false), { initialEntries: [path] });
-  const client = createApiClient({ baseUrl: "http://abaque.test", fetch: api.fetch });
-  const tree = (
-    <Providers client={client}>
-      <RouterProvider router={router} />
-    </Providers>
-  );
-  render(strict ? <StrictMode>{tree}</StrictMode> : tree);
-  return router;
-}
+import { apiError, fakeApi, json, ME } from "./test/fakeApi";
+import { renderApp } from "./test/renderApp";
 
 const anonymous = () =>
   fakeApi({
@@ -148,14 +132,17 @@ describe("account pages", () => {
 
 describe("signed-in pages", () => {
   const signedIn = (overrides: Partial<typeof ME> = {}) =>
-    fakeApi({ "GET /api/auth/me": () => json(200, { ...ME, ...overrides }) });
+    fakeApi({
+      "GET /api/auth/me": () => json(200, { ...ME, ...overrides }),
+      "GET /api/evaluations": () => json(200, []),
+    });
 
   it("shows the empty dashboard with the organisation and plan", async () => {
     renderApp("/", signedIn());
     expect(await screen.findByRole("heading", { name: "Mes évaluations" })).toBeTruthy();
     expect(screen.getByText("Cabinet Delta")).toBeTruthy();
     expect(screen.getByText("Offre : Essai")).toBeTruthy();
-    expect(screen.getByText("Vous n'avez pas encore d'évaluation.")).toBeTruthy();
+    expect(await screen.findByText("Vous n'avez pas encore d'évaluation.")).toBeTruthy();
   });
 
   it("asks unverified owners to confirm their email and can resend it", async () => {

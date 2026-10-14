@@ -1,4 +1,10 @@
-import { forwardRef, useId, useState, type InputHTMLAttributes } from "react";
+import {
+  forwardRef,
+  useId,
+  useState,
+  type InputHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from "react";
 import { fr } from "../i18n/fr";
 import styles from "./ui.module.css";
 
@@ -98,3 +104,80 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
     );
   },
 );
+
+interface TextAreaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string;
+  hint?: string | undefined;
+  error?: string | undefined;
+}
+
+/** Multi-line counterpart of Field, with the same label/hint/error wiring. */
+export function TextAreaField({ label, hint, error, id, ...props }: TextAreaFieldProps) {
+  const generated = useId();
+  const inputId = id ?? generated;
+  const hintId = hint ? `${inputId}-hint` : undefined;
+  const errorId = error ? `${inputId}-error` : undefined;
+  const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  return (
+    <div className={styles.field}>
+      <label className={styles.label} htmlFor={inputId}>
+        {label}
+      </label>
+      {hint && (
+        <span id={hintId} className={styles.hint}>
+          {hint}
+        </span>
+      )}
+      <textarea
+        id={inputId}
+        className={`${styles.input} ${styles.textarea}`}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
+        {...props}
+      />
+      {error && (
+        <span id={errorId} className={styles.error}>
+          {error}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** A labelled choice among a few options (radio buttons in a fieldset). */
+export function RadioGroup<T extends string>({
+  legend,
+  name,
+  value,
+  options,
+  onChange,
+  disabled,
+}: {
+  legend: string;
+  name: string;
+  value: T;
+  options: readonly { value: T; label: string; hint?: string }[];
+  onChange: (value: T) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <fieldset className={styles.fieldset} disabled={disabled}>
+      <legend className={styles.label}>{legend}</legend>
+      {options.map((option) => (
+        <label key={option.value} className={styles.choice}>
+          <input
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={value === option.value}
+            onChange={() => onChange(option.value)}
+          />
+          <span>
+            {option.label}
+            {option.hint && <span className={styles.hint}> — {option.hint}</span>}
+          </span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
