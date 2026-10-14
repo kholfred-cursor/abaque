@@ -7,7 +7,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 ### Cadrage (2026-10-12)
 - Spécification `docs/PROMPT_MVP.md` figée (SaaS multi-organisations, anonymat, 6 lots).
 - Dossier `docs/architecture/` : spécifications détaillées du lot 0 (blocs 1 à 7) et des garanties (transaction de vote, anonymat, exports, tests du lot 2, production).
-- `docs/DECISIONS.md` : D001 à D034.
+- `docs/DECISIONS.md` : D001 à D043.
 - `docs/adr/0001-stack.md`.
 
 ### Lot 0 — Socle (terminé le 2026-10-13)
@@ -28,6 +28,12 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/). Une secti
 
 - **Bloc 7 — écrans React (2026-10-13)**, réalisé hors de l'agent : tokens de design (`tokens.ts` et son miroir `tokens.css`, échelle à 5 couleurs avec symboles et contraste d'au moins 4,5:1), police auto-hébergée, textes de l'interface regroupés dans `i18n/fr.ts`, client API (CSRF, renouvellement unique et partagé, rejeu, expiration de session), écrans de connexion, d'inscription, de vérification de l'e-mail, de mot de passe oublié et de réinitialisation, tableau de bord vide, gestion des sessions, bannière « e-mail non vérifié », page participant `/v/:slug`, 404, page des tokens en développement uniquement. 30 tests de composants. Vérifié dans un vrai navigateur (Chromium) contre l'API et MongoDB : connexion du compte de démonstration, cookies conformes, session conservée au rechargement, déconnexion, aucun débordement à 360 px, aucun contrôle de moins de 44 px. Corrections : les comptes de démonstration en `.local` ne pouvaient pas se connecter (D033) ; la vérification des clés de couleur passe par `scale.json` côté backend. D034. Backend : 194 tests, couverture 93 %.
 
-#### Reporté au lot 1
-- Activation du job CI `e2e` (premier parcours Playwright : vote anonyme sur viewport mobile).
-- Fichiers `docs/samples/items.csv` et `participants.csv`.
+- **Fusion dans `main` (2026-10-13)** : pull request #11, CI verte (`backend`, `frontend`, `contract` ; `e2e` désactivé jusqu'au lot 1).
+
+#### Reporté
+- Lot 1 : activation du job CI `e2e` (premier parcours Playwright : vote anonyme sur viewport mobile).
+- Lot 3 : `docs/samples/participants.csv`.
+
+### Lot 1 — Boucle de vote anonyme (en cours, branche `lot-1-vote`)
+- Découpage et choix : `docs/architecture/lot1-plan.md`. Question ouverte n° 1 close : le rose est conservé (D035).
+- **Bloc 1a (2026-10-13)** : API animateur des évaluations (créer, lire, modifier, dupliquer, supprimer avec tout ce qui y est rattaché), versions et cycle de vie journalisé (`draft → open ⇄ closed → archived`, une seule version ouverte garantie par un index unique partiel), contenu enregistré d'un bloc avec numéro de révision (groupes, items, libellés personnalisés), préréglages d'échelle, import et export CSV des items (BOM, `;`, CRLF, neutralisation des formules), quota `max_active_evaluations` exact sous concurrence, compteur d'usage mensuel. Lien public aléatoire unique sur la plateforme. `docs/samples/items.csv`. Isolation : une vérification par nouvelle route (12), contrôlée par mutation. D035 à D043. 246 tests, couverture 95 %.

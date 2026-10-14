@@ -17,6 +17,7 @@ from app.repositories.mongo.organizations import OrganizationRepository
 from app.repositories.mongo.store import MongoStore
 from app.services.account import AccountService
 from app.services.auth import AuthService
+from app.services.content import ContentService
 from app.services.mailer import Mailer
 from app.services.rate_limit import RateLimiter
 
@@ -136,3 +137,21 @@ def organization_repository(store: StoreDep, tenant: TenantDep) -> OrganizationR
 
 def admin_repository(store: StoreDep, tenant: TenantDep) -> AdminRepository:
     return store.admins(tenant)
+
+
+async def verified_org(
+    _: Annotated[Admin, Depends(require_verified)], tenant: TenantDep
+) -> TenantContext:
+    """Tenant scope for content routes: the account must have confirmed its email."""
+    return tenant
+
+
+def get_content_service(
+    store: StoreDep,
+    settings: SettingsDep,
+    tenant: Annotated[TenantContext, Depends(verified_org)],
+) -> ContentService:
+    return ContentService(store, tenant, settings)
+
+
+ContentDep = Annotated[ContentService, Depends(get_content_service)]

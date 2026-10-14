@@ -147,3 +147,31 @@ Consommation atomique (`used_at` posé une seule fois, `expires_at` toujours vé
 - **Jetons dans l'URL** (vérification, réinitialisation) : lus une fois puis retirés de la barre d'adresse et de l'historique ; la vérification n'est envoyée qu'une seule fois, même en StrictMode.
 - **Accessibilité** : erreurs annoncées (`role="alert"`) et focalisées, focus sur le premier champ invalide, cibles de 44 px, focus visible, `prefers-reduced-motion`. Le bouton « Afficher » du mot de passe garde un nom accessible fixe (« Afficher le mot de passe ») et indique son état par `aria-pressed`.
 - **Cohérence entre front et backend sans dépendance** : `docs/design/scale.json` est la source commune. Le front vérifie `scale.ts` contre ce fichier, le backend vérifie `COLOR_KEYS` contre le même fichier. Le front n'importe jamais de fichier du backend, ce que vérifie le test d'architecture. Vite n'autorise en lecture hors de `frontend/` que `docs/design`.
+
+## D035 — Le rose est conservé pour « Plutôt pas d'accord »
+Question ouverte n° 1 de la spécification, tranchée par Fred au début du lot 1 : `-` reste rose (`#f0a8b8`). Il se distingue du rouge par sa clarté, et chaque couleur porte aussi un symbole.
+
+## D036 — Lien public : slug aléatoire unique sur la plateforme
+Le `slug` d'une évaluation est tiré au hasard (10 caractères parmi 32, sans `0`, `o`, `1` ni `l`). Il ne contient ni le titre ni l'organisation (section 5). Le lien `/v/:slug` doit retrouver l'évaluation sans connaître l'organisation : l'index `uq_evaluations_slug` le rend unique sur toute la plateforme, et une collision, très improbable, provoque un nouveau tirage.
+
+## D037 — Une seule version ouverte par évaluation
+Le lien public sert la version ouverte de l'évaluation. Un index unique partiel (`uq_versions_evaluation_id_open`) garantit au niveau de la base qu'il n'y en a jamais deux, même avec des ouvertures simultanées. Transitions permises : `draft → open`, `open → closed`, `closed → open` (réouverture, bulletins conservés), `draft | closed → archived` (définitif, lecture seule). Une version ouverte doit être close avant d'être archivée. Chaque transition est écrite dans `version_events` dans la même transaction. L'ouverture exige au moins un item.
+
+## D038 — Contenu d'une version enregistré d'un bloc, avec numéro de révision
+L'éditeur envoie l'ensemble des groupes, des items (dans l'ordre) et des libellés (`PUT /api/versions/{id}/content`). Le glisser-déposer, l'ajout et la suppression se font dans l'éditeur, puis un seul enregistrement remplace le contenu dans une transaction ; les identifiants existants sont conservés. Le contenu est modifiable tant que la version n'a reçu aucun bulletin et n'est pas archivée ; pour changer d'items ensuite, on duplique la version (section 9.1).
+Chaque enregistrement incrémente `versions.content_revision`, et le client envoie la révision qu'il a chargée. Cela donne deux garanties : un deuxième onglet resté sur une ancienne révision reçoit 409 au lieu d'écraser le travail du premier, et l'enregistrement écrit réellement le document de la version, donc il entre en conflit dans MongoDB avec un premier bulletin simultané (qui incrémente `ballot_count` sur le même document) : jamais d'items modifiés sous un bulletin.
+
+## D039 — Brouillon local du votant
+Exception unique à l'interdiction du stockage navigateur : `frontend/src/vote/draft.ts` conserve les réponses en cours (couleurs et commentaires) pour survivre à un rechargement (section 9.4). Une clé par version ; le brouillon est effacé après un envoi accepté et reste lisible si l'envoi est refusé. Risque documenté : sur un appareil partagé, une autre personne pourrait lire un brouillon non envoyé.
+
+## D040 — Vote anonyme livré au lot 1
+Le lot 1 livre le service de vote pour le seul mode anonyme (étapes 1, 3 et 5 de la section 7) ; le lot 2 le généralise aux trois modes. Le cookie anti double vote est aléatoire, `httpOnly`, limité au chemin de l'évaluation, et ne contient aucune donnée ; le serveur ne le conserve pas. L'adresse IP ne sert qu'à la limite de débit, hachée avec `IP_HASH_SALT`, en mémoire, et oubliée à la clôture de la version.
+
+## D041 — Détection des textes identifiants et seuil k global dès le lot 1
+L'export 2 et les commentaires existent dès le lot 1 : la détection (section 11) et le seuil k global sont donc livrés maintenant dans `app/anonymity`. Le lot 2 complète ce module (sous-groupes, compléments, tests de propriétés).
+
+## D042 — Évaluation « active » pour le quota
+`max_active_evaluations` compte les évaluations qui ont au moins une version non archivée : archiver la dernière version libère la place. La création incrémente le compteur d'usage mensuel de l'organisation dans la même transaction ; deux créations simultanées entrent donc en conflit, et le quota est exact.
+
+## D043 — Seul le mode anonyme au lot 1
+Les modes `auth_open` et `auth_closed` sont refusés à la création (400 `MODE_NOT_AVAILABLE`) jusqu'au lot 3, qui livre les participants et les liens d'accès.

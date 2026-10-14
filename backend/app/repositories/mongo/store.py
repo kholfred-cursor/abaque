@@ -14,6 +14,7 @@ from pymongo.asynchronous.database import AsyncDatabase
 from app.domain.models import TenantContext
 from app.repositories.mongo.admins import AdminAuthRepository, AdminRepository
 from app.repositories.mongo.auth_tokens import AuthTokenRepository
+from app.repositories.mongo.content import ContentRepository
 from app.repositories.mongo.organizations import (
     OrganizationProvisioningRepository,
     OrganizationRepository,
@@ -45,3 +46,6 @@ class MongoStore:
 
     def admins(self, tenant: TenantContext) -> AdminRepository:
         return AdminRepository(self.database, tenant)
+
+    def content(self, tenant: TenantContext) -> ContentRepository:
+        return ContentRepository(self.database, self.client, tenant)

@@ -17,3 +17,11 @@ SCALE_JSON = Path(__file__).resolve().parents[3] / "docs" / "design" / "scale.js
 def test_color_keys_match_the_design_scale() -> None:
     scale = json.loads(SCALE_JSON.read_text(encoding="utf-8"))["scale"]
     assert [color["key"] for color in scale] == COLOR_KEYS
+
+
+def test_preset_labels_match_the_design_scale() -> None:
+    from app.domain.content import PRESET_LABELS
+
+    scale = json.loads(SCALE_JSON.read_text(encoding="utf-8"))["scale"]
+    for preset in ("agreement", "score"):
+        assert {c["key"]: c["labels"][preset] for c in scale} == PRESET_LABELS[preset]

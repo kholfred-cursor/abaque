@@ -16,6 +16,12 @@ Ce dossier détaille **comment** construire ce que `docs/PROMPT_MVP.md` décrit.
 | 6 | [`lot0-06-tests-backend.md`](lot0-06-tests-backend.md) | Infrastructure de tests, tests d'architecture et d'isolation |
 | 7 | [`lot0-07-frontend.md`](lot0-07-frontend.md) | Socle React, client API, authentification, tokens de design |
 
+## Lot 1
+
+| Fichier | Contenu |
+|---|---|
+| [`lot1-plan.md`](lot1-plan.md) | Découpage en blocs 1a à 1e et choix D035 à D043 |
+
 ## Garanties (lots 2 à 4)
 
 | Fichier | Contenu |
