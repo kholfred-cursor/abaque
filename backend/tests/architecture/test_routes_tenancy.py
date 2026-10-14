@@ -130,6 +130,9 @@ RESOURCE_FACTORIES: dict[tuple[str, str], Check] = {
     ("GET", "/api/versions/{version_id}/items.csv"): _expect_404(
         "GET", "/api/versions/{version_id}/items.csv"
     ),
+    ("GET", "/api/versions/{version_id}/exports/ballots.csv"): _expect_404(
+        "GET", "/api/versions/{version_id}/exports/ballots.csv"
+    ),
     ("POST", "/api/versions/{version_id}/items/import"): _expect_404(
         "POST",
         "/api/versions/{version_id}/items/import",

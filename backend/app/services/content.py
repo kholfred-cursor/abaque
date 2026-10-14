@@ -36,6 +36,7 @@ from app.entitlements.checker import LimitReached, check_mode, get_limit
 from app.repositories.mongo.content import QuotaFull, SlugTaken
 from app.repositories.mongo.store import MongoStore
 from app.services.csv_format import CsvImportError, items_csv, parse_items_csv
+from app.services.rate_limit import RateLimiter
 
 # No vowels-only ambiguity: no 0/o, 1/l (D036). 31^10 ≈ 8e14 possible slugs.
 _SLUG_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"
@@ -91,10 +92,17 @@ def _check_size(groups: list[GroupInput]) -> None:
 
 
 class ContentService:
-    def __init__(self, store: MongoStore, tenant: TenantContext, settings: Settings) -> None:
+    def __init__(
+        self,
+        store: MongoStore,
+        tenant: TenantContext,
+        settings: Settings,
+        rate_limiter: RateLimiter | None = None,
+    ) -> None:
         self.repository = store.content(tenant)
         self.organizations = store.organizations(tenant)
         self.settings = settings
+        self.rate_limiter = rate_limiter
 
     # ── Evaluations ──────────────────────────────────────────────────────────
 
@@ -228,7 +236,7 @@ class ContentService:
                     409, "NO_ITEMS", "Ajoutez au moins un item avant d'ouvrir le vote."
                 )
         try:
-            return await self.repository.transition(
+            version = await self.repository.transition(
                 version_id, action, self.settings.credential_key_id
             )
         except InvalidTransition as exc:
@@ -241,6 +249,10 @@ class ContentService:
                 "ANOTHER_VERSION_OPEN",
                 "Une autre version de cette évaluation est déjà ouverte. Clôturez-la d'abord.",
             ) from exc
+        if action == "close" and self.rate_limiter is not None:
+            # D040: hashed IPs of a version are only kept while it is open.
+            await self.rate_limiter.forget_prefix(f"vote:{version_id}:")
+        return version
 
     async def export_items(self, version_id: str) -> tuple[str, bytes]:
         content = await self.repository.get_content(version_id)

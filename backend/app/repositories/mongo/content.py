@@ -300,43 +300,7 @@ class ContentRepository(TenantScopedRepository):
         self, version_id: str, session: AsyncClientSession | None = None
     ) -> VersionContent:
         version = await self.get_version(version_id, session)
-        version_oid = self._oid(version_id)
-        options = self._session_options(session)
-        groups_cursor = (
-            self.database["item_groups"]
-            .find(self._scope({"version_id": version_oid}), **options)
-            .sort("position", 1)
-        )
-        groups = [document async for document in groups_cursor]
-        items_by_group: dict[Any, list[Item]] = {group["_id"]: [] for group in groups}
-        items_cursor = (
-            self.database["items"]
-            .find(self._scope({"version_id": version_oid}), **options)
-            .sort("position", 1)
-        )
-        async for document in items_cursor:
-            items_by_group.setdefault(document["group_id"], []).append(
-                Item(
-                    id=str(document["_id"]),
-                    short_name=document["short_name"],
-                    statement=document["statement"],
-                )
-            )
-        labels: dict[ColorKey, str] = {}
-        async for document in self.database["color_labels"].find(
-            self._scope({"version_id": version_oid}), **options
-        ):
-            labels[document["color_key"]] = document["label"]
-        return VersionContent(
-            version=version,
-            groups=[
-                ItemGroup(
-                    id=str(group["_id"]), name=group["name"], items=items_by_group[group["_id"]]
-                )
-                for group in groups
-            ],
-            color_labels={key: labels[key] for key in COLOR_ORDER if key in labels},
-        )
+        return await read_content(self.database, self._organization_id, version, session)
 
     async def _insert_content(
         self,
@@ -494,6 +458,19 @@ class ContentRepository(TenantScopedRepository):
         except DuplicateKeyError as exc:  # uq_versions_evaluation_id_open
             raise AnotherVersionOpen from exc
 
+    async def record_event(self, version_id: str, kind: str) -> None:
+        """Journal an action without its content (e.g. an export generation)."""
+        await self.database["version_events"].insert_one(
+            {
+                "_id": ObjectId(),
+                "organization_id": self._organization_id,
+                "version_id": self._oid(version_id),
+                "kind": kind,
+                "at": datetime.now(UTC),
+                "admin_id": self._oid(self.context.admin_id),
+            }
+        )
+
     async def version_events(self, version_id: str) -> list[tuple[str, datetime]]:
         cursor = (
             self.database["version_events"]
@@ -501,6 +478,53 @@ class ContentRepository(TenantScopedRepository):
             .sort("at", 1)
         )
         return [(document["kind"], document["at"]) async for document in cursor]
+
+
+async def read_content(
+    database: AsyncDatabase[Any],
+    organization_oid: ObjectId,
+    version: Version,
+    session: AsyncClientSession | None = None,
+) -> VersionContent:
+    """Groups, items and labels of a version already resolved within its organization.
+
+    Shared by the tenant-scoped editor and the public vote page (which has no tenant
+    context but has read the version through its public slug).
+    """
+    scope = {"organization_id": organization_oid, "version_id": ObjectId(version.id)}
+    options: dict[str, Any] = {} if session is None else {"session": session}
+    groups = [
+        document
+        async for document in database["item_groups"].find(scope, **options).sort("position", 1)
+    ]
+    items_by_group: dict[Any, list[Item]] = {group["_id"]: [] for group in groups}
+    async for document in database["items"].find(scope, **options).sort("position", 1):
+        items_by_group.setdefault(document["group_id"], []).append(
+            Item(
+                id=str(document["_id"]),
+                short_name=document["short_name"],
+                statement=document["statement"],
+            )
+        )
+    labels: dict[ColorKey, str] = {}
+    async for document in database["color_labels"].find(scope, **options):
+        labels[document["color_key"]] = document["label"]
+    return VersionContent(
+        version=version,
+        groups=[
+            ItemGroup(id=str(group["_id"]), name=group["name"], items=items_by_group[group["_id"]])
+            for group in groups
+        ],
+        color_labels={key: labels[key] for key in COLOR_ORDER if key in labels},
+    )
+
+
+def evaluation_from_document(document: dict[str, Any]) -> Evaluation:
+    return _evaluation(document)
+
+
+def version_from_document(document: dict[str, Any]) -> Version:
+    return _version(document)
 
 
 class QuotaFull(Exception):  # noqa: N818

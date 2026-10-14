@@ -23,7 +23,12 @@ Référence : `docs/PROMPT_MVP.md`, sections 9.1, 9.2, 9.4, 12 (export 2) et 14.
 - **D037** — Une seule version ouverte par évaluation ; `/v/:slug` sert cette version. Transitions : `draft → open`, `open → closed`, `closed → open`, `draft | closed → archived`. Le contenu (groupes, items, libellés) est modifiable tant que la version n'a reçu aucun bulletin et n'est pas archivée.
 - **D038** — Le contenu d'une version est enregistré d'un bloc (`PUT /api/versions/{id}/content`) : le glisser-déposer, l'ajout et la suppression se font dans l'éditeur, puis un seul enregistrement valide l'ensemble dans une transaction.
 - **D039** — Brouillon local du votant : seule exception à l'interdiction du stockage navigateur, limitée à `frontend/src/vote/draft.ts`, une clé par version, effacée après l'envoi.
-- **D040** — Vote anonyme au lot 1 : service de vote limité au mode anonyme, que le lot 2 généralisera aux trois modes. Le cookie anti double vote est aléatoire, `httpOnly`, limité au chemin de la version, et ne contient aucune donnée.
+- **D040** — Vote anonyme au lot 1 : service de vote limité au mode anonyme, que le lot 2 généralisera aux trois modes. Le cookie anti double vote est aléatoire, `httpOnly`, propre à la version et limité au chemin de l'évaluation ; il ne contient aucune donnée.
 - **D041** — Détection des textes identifiants et seuil k global livrés dès le lot 1 dans `app/anonymity`, car l'export 2 et les commentaires en ont besoin. Le lot 2 complète `anonymity` (sous-groupes, compléments).
 - **D042** — Évaluations « actives » pour le quota : celles qui ont au moins une version non archivée.
 - **D043** — Au lot 1, seul le mode `anonymous` peut être choisi ; les autres modes sont refusés (400) jusqu'au lot 3.
+
+## Réalisation
+
+- **1a** (2026-10-13) : routes `/api/evaluations` et `/api/versions/{id}` (contenu, transitions, duplication, CSV des items). Service `app/services/content.py`, repository `app/repositories/mongo/content.py`.
+- **1b** (2026-10-14) : routes `/api/public/v/{slug}` (lecture, envoi) et `/api/versions/{id}/exports/ballots.csv`. Écriture des bulletins dans `app/repositories/mongo/vote.py` (seul chemin d'écriture), lecture pour l'export par `MongoBallotReader` dans le paquet `app/services/export/` (seul paquet autorisé avec la restitution, test d'architecture). Les routes publiques sont exemptées du jeton CSRF (aucune session) mais exigent un corps JSON et refusent une origine étrangère. La course « clôture pendant un vote » est testée sur la cohérence des compteurs ; un bulletin ne portant aucune heure, l'instant de son écriture n'est pas observable par conception.

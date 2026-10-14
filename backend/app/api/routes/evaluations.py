@@ -5,10 +5,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
-from app.api.deps import ContentDep
+from app.api.deps import ContentDep, ExportDep
 from app.api.errors import responses
 from app.domain.content import (
     COLOR_ORDER,
@@ -317,3 +317,25 @@ async def import_items(
 ) -> VersionContentResponse:
     content = await service.import_items(version_id, body.revision, body.csv, body.mode)
     return await _content_response(service, content)
+
+
+@router.get(
+    "/versions/{version_id}/exports/ballots.csv",
+    response_class=Response,
+    responses={**responses(400, 401, 403, 404, 409), **_CSV},
+)
+async def export_ballots(version_id: str, request: Request, service: ExportDep) -> Response:
+    """Export 2: always on the whole version; any filter parameter is refused."""
+    if request.query_params:
+        raise RuleViolation(
+            400, "FILTER_NOT_ALLOWED", "Cet export porte toujours sur l'ensemble de la version."
+        )
+    filename, content = await service.ballots_csv(version_id)
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-store",
+        },
+    )

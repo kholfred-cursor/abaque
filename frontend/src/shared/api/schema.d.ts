@@ -286,6 +286,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/v/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Public Version */
+        get: operations["get_public_version_api_public_v__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v/{slug}/ballots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Ballot */
+        post: operations["submit_ballot_api_public_v__slug__ballots_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/versions/{version_id}": {
         parameters: {
             query?: never;
@@ -331,6 +365,26 @@ export interface paths {
         put?: never;
         /** Duplicate Version */
         post: operations["duplicate_version_api_versions__version_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/versions/{version_id}/exports/ballots.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Ballots
+         * @description Export 2: always on the whole version; any filter parameter is refused.
+         */
+        get: operations["export_ballots_api_versions__version_id__exports_ballots_csv_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -409,6 +463,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * BallotAccepted
+         * @description Deliberately empty of any ballot id (section 7, step 5).
+         */
+        BallotAccepted: {
+            /**
+             * Status
+             * @constant
+             */
+            status: "recorded";
+        };
+        /** BallotRequest */
+        BallotRequest: {
+            /** Version Id */
+            version_id: string;
+            /** Votes */
+            votes: components["schemas"]["VoteRequestItem"][];
+        };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
             /** Current Password */
@@ -679,6 +751,61 @@ export interface components {
              */
             plan_code: "demo" | "trial" | "standard";
         };
+        /** PublicGroup */
+        PublicGroup: {
+            /** Id */
+            id: string;
+            /** Items */
+            items: components["schemas"]["PublicItem"][];
+            /** Name */
+            name: string;
+        };
+        /** PublicItem */
+        PublicItem: {
+            /** Id */
+            id: string;
+            /** Short Name */
+            short_name: string;
+            /** Statement */
+            statement: string;
+        };
+        /** PublicScaleEntry */
+        PublicScaleEntry: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "++" | "+" | "~" | "-" | "--";
+            /** Label */
+            label: string;
+        };
+        /**
+         * PublicVersionResponse
+         * @description Everything the voting page needs; nothing about the organization or other versions.
+         */
+        PublicVersionResponse: {
+            /** Already Voted */
+            already_voted: boolean;
+            /** Groups */
+            groups: components["schemas"]["PublicGroup"][];
+            /** Intro Md */
+            intro_md: string | null;
+            /** Outro Md */
+            outro_md: string | null;
+            /** Scale */
+            scale: components["schemas"]["PublicScaleEntry"][];
+            /** Show Vote Example */
+            show_vote_example: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "closed";
+            /** Title */
+            title: string;
+            /** Version Id */
+            version_id: string | null;
+        };
         /** ResetRequest */
         ResetRequest: {
             /** Password */
@@ -797,6 +924,18 @@ export interface components {
              * @enum {string}
              */
             status: "draft" | "open" | "closed" | "archived";
+        };
+        /** VoteRequestItem */
+        VoteRequestItem: {
+            /**
+             * Color Key
+             * @enum {string}
+             */
+            color_key: "++" | "+" | "~" | "-" | "--";
+            /** Comment */
+            comment?: string | null;
+            /** Item Id */
+            item_id: string;
         };
     };
     responses: never;
@@ -1755,6 +1894,126 @@ export interface operations {
             };
         };
     };
+    get_public_version_api_public_v__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicVersionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_ballot_api_public_v__slug__ballots_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BallotRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BallotAccepted"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_version_api_versions__version_id__get: {
         parameters: {
             query?: never;
@@ -1933,6 +2192,82 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_ballots_api_versions__version_id__exports_ballots_csv_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

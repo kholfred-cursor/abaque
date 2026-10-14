@@ -24,7 +24,7 @@ Vérifié : connexion du compte de démonstration dans un vrai navigateur ; CI v
 
 | Lot | Contenu | État |
 |---|---|---|
-| 1 | Boucle de vote anonyme (évaluations, versions, items, lien et QR code, parcours de vote mobile) | en cours : bloc 1a ✅ (API des évaluations) |
+| 1 | Boucle de vote anonyme (évaluations, versions, items, lien et QR code, parcours de vote mobile) | en cours : blocs 1a ✅ (API des évaluations) et 1b ✅ (vote anonyme, export des bulletins) |
 | 2 | Moteurs, service de vote pour les 3 modes, garanties d'anonymat | à faire |
 | 3 | Accès nominatifs et collecte avancée (liens magiques, segmentation, questions ouvertes, e-mails réels) | à faire |
 | 4 | Restitution (matrices, histogrammes, exports CSV et PDF) | à faire |
@@ -46,6 +46,9 @@ Vérifié : connexion du compte de démonstration dans un vrai navigateur ; CI v
 - Choisir l'échelle : « Accord », « Score 1–5 » ou libellés personnalisés.
 - Ouvrir, clore, rouvrir et archiver une version ; une seule version ouverte à la fois ; chaque étape est journalisée. Les items sont figés dès la première réponse : on duplique la version pour les changer.
 - Respecter le nombre d'évaluations actives permis par l'offre, même avec des créations simultanées.
+- Recevoir les votes anonymes par le lien public : aucun bulletin ne contient d'heure ni d'identité, un même navigateur ne vote qu'une fois, un vote envoyé après la clôture est refusé (« Cette consultation est close, votre réponse n'a pas été enregistrée »), et le nombre de réponses permis par l'offre est respecté même avec des envois simultanés.
+- Mettre de côté les commentaires qui semblent contenir une adresse e-mail, un numéro de téléphone ou un nom propre : ils n'apparaissent nulle part tant qu'ils ne sont pas validés.
+- Exporter les bulletins en CSV à partir de 3 réponses : références et ordre tirés au hasard à chaque export, aucune date.
 
 ### Côté serveur (lot 0)
 
