@@ -209,11 +209,25 @@ describe("signed-in pages", () => {
 describe("public pages", () => {
   it("serves the participant page without any facilitator session", async () => {
     const api = anonymous();
+    api.on("GET /api/public/v/atelier-2026", () =>
+      json(200, {
+        title: "Atelier 2026",
+        status: "closed",
+        version_id: null,
+        already_voted: false,
+        intro_md: null,
+        outro_md: null,
+        show_vote_example: false,
+        scale: [],
+        groups: [],
+      }),
+    );
     renderApp("/v/atelier-2026", api);
     expect(
-      await screen.findByRole("heading", { name: "Ce vote n'est pas encore ouvert." }),
+      await screen.findByRole("heading", { name: "Cette consultation est close." }),
     ).toBeTruthy();
-    expect(document.title).toBe("Vote | Abaque");
+    expect(document.title).toBe("Atelier 2026 | Abaque");
+    expect(screen.queryByRole("link", { name: "Se déconnecter" })).toBeNull();
   });
 
   it("shows a 404 page", async () => {

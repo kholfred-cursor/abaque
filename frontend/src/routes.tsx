@@ -14,7 +14,7 @@ import { TokensPage } from "./dev/TokensPage";
 import { NotFoundPage } from "./NotFoundPage";
 import { RequireAuth } from "./shared/auth/RequireAuth";
 import { AppLayout } from "./shared/ui/Layout";
-import { VotePlaceholderPage } from "./vote/VotePlaceholderPage";
+import { VotePage } from "./vote/VotePage";
 
 export function buildRoutes(dev: boolean): RouteObject[] {
   const protectedChildren: RouteObject[] = [
@@ -37,7 +37,7 @@ export function buildRoutes(dev: boolean): RouteObject[] {
     { path: "/verifier-email", element: <VerifyEmailPage /> },
     { path: "/mot-de-passe-oublie", element: <ForgotPasswordPage /> },
     { path: "/reinitialiser", element: <ResetPasswordPage /> },
-    { path: "/v/:slug", element: <VotePlaceholderPage /> },
+    { path: "/v/:slug", element: <VotePage /> },
     {
       path: "/",
       element: (

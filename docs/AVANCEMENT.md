@@ -24,7 +24,7 @@ Vérifié : connexion du compte de démonstration dans un vrai navigateur ; CI v
 
 | Lot | Contenu | État |
 |---|---|---|
-| 1 | Boucle de vote anonyme (évaluations, versions, items, lien et QR code, parcours de vote mobile) | en cours : 1a ✅ API des évaluations, 1b ✅ vote anonyme et export, 1c ✅ écrans de l'animateur ; restent 1d (écrans de vote) et 1e (test de bout en bout) |
+| 1 | Boucle de vote anonyme (évaluations, versions, items, lien et QR code, parcours de vote mobile) | en cours : 1a ✅ API des évaluations, 1b ✅ vote anonyme et export, 1c ✅ écrans de l'animateur, 1d ✅ vote sur téléphone ; reste 1e (test de bout en bout en CI) |
 | 2 | Moteurs, service de vote pour les 3 modes, garanties d'anonymat | à faire |
 | 3 | Accès nominatifs et collecte avancée (liens magiques, segmentation, questions ouvertes, e-mails réels) | à faire |
 | 4 | Restitution (matrices, histogrammes, exports CSV et PDF) | à faire |
@@ -36,6 +36,7 @@ Vérifié : connexion du compte de démonstration dans un vrai navigateur ; CI v
 - Créer une évaluation, rédiger ses items par groupes (ou importer un fichier CSV), les réordonner à la souris ou au clavier, choisir l'échelle et les textes d'accueil et de fin.
 - Ouvrir le vote, afficher le lien et le QR code à projeter ou à télécharger, suivre le nombre de réponses, clore, rouvrir, archiver ou dupliquer une version, exporter les réponses.
 - Supprimer une évaluation après confirmation.
+- Voter sur téléphone avec le lien ou le QR code : accueil, une partie à la fois, 5 grandes zones de couleur, commentaire facultatif, progression visible, vérification puis envoi définitif. Un rechargement ne fait pas perdre les réponses en cours ; un envoi après la clôture est refusé et les réponses restent affichées.
 - Se connecter, s'inscrire, confirmer son e-mail (avec renvoi du lien depuis une bannière), demander puis choisir un nouveau mot de passe ; afficher le mot de passe pendant la saisie.
 - Voir un tableau de bord vide (« Vous n'avez pas encore d'évaluation ») avec le nom de l'organisation et l'offre.
 - Voir ses sessions ouvertes, en fermer une ou toutes les autres.
